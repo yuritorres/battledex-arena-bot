@@ -1,7 +1,8 @@
 import os
 import sqlite3
 
-SHOP_DB_PATH = os.path.join(os.path.dirname(__file__), "shop.db")
+STORAGE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "storage"))
+SHOP_DB_PATH = os.path.join(STORAGE_DIR, "shop.db")
 IMAGES_DIR = os.path.join(os.path.dirname(__file__), "imagens")
 
 # Função para conectar ao banco da loja

@@ -19,24 +19,27 @@ import json
 import os
 
 API_URL = "https://pokeapi.co/api/v2/pokemon/{}"
-CACHE_DIR = os.path.join(os.path.dirname(__file__), 'cache')
-CACHE_FILE = os.path.join(CACHE_DIR, 'pokedex_cache.json')
+STORAGE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "storage"))
+os.makedirs(STORAGE_DIR, exist_ok=True)
+CACHE_FILE = os.path.join(STORAGE_DIR, 'pokedex_cache.json')
 
 def _load_cache():
-    if not os.path.exists(CACHE_DIR):
-        print(f"[POKEDEX] Criando pasta de cache: {CACHE_DIR}")
-        os.makedirs(CACHE_DIR, exist_ok=True)
-    if os.path.exists(CACHE_FILE):
+    if not os.path.exists(CACHE_FILE):
+        return {}
+    with open(CACHE_FILE, 'r', encoding='utf-8') as f:
         try:
-            with open(CACHE_FILE, 'r', encoding='utf-8') as f:
-                print(f"[POKEDEX] Lendo cache de {CACHE_FILE}")
-                return json.load(f)
+            return json.load(f)
+        except json.JSONDecodeError:
+            return {}
         except Exception as e:
             print(f"[POKEDEX] Erro ao ler cache: {e}")
             return {}
     return {}
 
 def _save_cache(cache):
+    if not os.path.exists(STORAGE_DIR):
+        print(f"[POKEDEX] Criando pasta de cache para salvar: {STORAGE_DIR}")
+        os.makedirs(STORAGE_DIR, exist_ok=True)
     if not os.path.exists(CACHE_DIR):
         print(f"[POKEDEX] Criando pasta de cache para salvar: {CACHE_DIR}")
         os.makedirs(CACHE_DIR, exist_ok=True)

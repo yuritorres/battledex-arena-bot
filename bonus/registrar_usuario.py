@@ -16,7 +16,9 @@ def registrar_usuario(user):
         username = user.first_name
     else:
         username = None
-    usuarios_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "usuarios.json"))
+    storage_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "storage"))
+    os.makedirs(storage_dir, exist_ok=True)
+    usuarios_path = os.path.join(storage_dir, "usuarios.json")
     try:
         with open(usuarios_path, "r", encoding="utf-8") as f:
             usuarios_map = json.load(f)

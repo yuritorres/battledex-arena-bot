@@ -1,7 +1,8 @@
 import sqlite3
 import os
 
-INVENTARIO_DB_PATH = os.path.join(os.path.dirname(__file__), "inventario.db")
+STORAGE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "storage"))
+INVENTARIO_DB_PATH = os.path.join(STORAGE_DIR, "inventario.db")
 
 def create_inventario_connection():
     os.makedirs(os.path.dirname(INVENTARIO_DB_PATH), exist_ok=True)

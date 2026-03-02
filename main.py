@@ -304,7 +304,7 @@ async def inventario_command(update, context):
 # Handler para comando /comprar
 async def comprar_command(update, context):
     import json, os
-    usuarios_path = os.path.join(os.path.dirname(__file__), "usuarios.json")
+    usuarios_path = USERS_JSON_PATH
     # Verifica se o usuário está vinculado a um nome
     try:
         with open(usuarios_path, "r", encoding="utf-8") as f:
@@ -539,7 +539,7 @@ async def addplayer(update: Update, context: ContextTypes.DEFAULT_TYPE):
     add_player(nome)
     # Vincular ID ao nome do ranking
     import json, os
-    usuarios_path = os.path.join(os.path.dirname(__file__), "usuarios.json")
+    usuarios_path = USERS_JSON_PATH
     try:
         with open(usuarios_path, "r", encoding="utf-8") as f:
             usuarios_map = json.load(f)

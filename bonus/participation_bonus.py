@@ -3,8 +3,9 @@ import json
 from datetime import datetime
 from financeiro.coins_db import add_coins
 
-PARTICIPATION_FILE = os.path.join(os.path.dirname(__file__), "participation_bonus.json")
-# O arquivo participation_bonus.json agora fica SEMPRE na pasta bonus
+STORAGE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "storage"))
+PARTICIPATION_FILE = os.path.join(STORAGE_DIR, "participation_bonus.json")
+os.makedirs(STORAGE_DIR, exist_ok=True)
 
 # Função para registrar participação diária
 async def registrar_participacao(update, context):
@@ -29,7 +30,7 @@ async def registrar_participacao(update, context):
     with open(PARTICIPATION_FILE, "w", encoding="utf-8") as f:
         json.dump(participations, f, ensure_ascii=False, indent=4)
     # Buscar nome do ranking do usuário
-    usuarios_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "usuarios.json"))
+    usuarios_path = os.path.join(STORAGE_DIR, "usuarios.json")
     try:
         with open(usuarios_path, "r", encoding="utf-8") as f:
             usuarios_map = json.load(f)
