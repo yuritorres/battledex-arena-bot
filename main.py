@@ -90,7 +90,6 @@ from bonus.registrar_usuario import registrar_usuario
 from financeiro.coins_db import add_coins, get_coins, remove_coins, coins_leaderboard
 from telegram.ext import CommandHandler
 import sys
-import os
 sys.path.append(os.path.join(os.path.dirname(__file__), 'loja'))
 from loja.shop import listar_itens, IMAGES_DIR, buscar_item
 from loja.comprar import comprar_item
@@ -109,10 +108,6 @@ async def bonus_and_handle_message(update, context):
 async def info_command(update, context):
     import json
     user = update.effective_user
-    from dotenv import load_dotenv
-    import os
-    load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '.env'))
-    ADMINS = [int(x.strip()) for x in os.getenv("ADMINS", "").split(",") if x.strip().isdigit()]
     if user.id not in ADMINS:
         await update.message.reply_text("⛔ Você não tem permissão para usar este comando.")
         return

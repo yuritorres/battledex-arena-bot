@@ -201,6 +201,8 @@ def register_quiz_handlers(app, storage_dir: str, quiz_group_id: Optional[int], 
         if poll_data is None:
             return
         answer_id = poll_data["answer_id"]
+        options = poll_data.get("options", [])
+        correct_text = options[answer_id] if 0 <= answer_id < len(options) else "(opção desconhecida)"
         if ans.option_ids and ans.option_ids[0] == answer_id:
             _add_score(cfg, ans.user.id)
             await context.bot.send_message(
@@ -213,7 +215,7 @@ def register_quiz_handlers(app, storage_dir: str, quiz_group_id: Optional[int], 
             await context.bot.send_message(
                 chat_id=cfg.quiz_group_id,
                 message_thread_id=cfg.quiz_topic_id,
-                text=f"{ans.user.mention_html()} ❌ Resposta incorreta. Tente novamente!",
+                text=f"{ans.user.mention_html()} ❌ Resposta incorreta. Resposta correta: <b>{correct_text}</b>.",
                 parse_mode="HTML",
             )
         state["active_polls"].pop(poll_id, None)
