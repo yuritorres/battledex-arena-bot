@@ -146,6 +146,7 @@ def register_quiz_handlers(app, storage_dir: str, quiz_group_id: Optional[int], 
         "cfg": cfg,
         "client": client,
         "pokemon_list": pokemon_list,
+        # poll_id -> {"answer_id": int, "options": list[str], "question": str}
         "active_polls": {},
         "answered_polls": set(),
     }
@@ -180,7 +181,11 @@ def register_quiz_handlers(app, storage_dir: str, quiz_group_id: Optional[int], 
             allows_multiple_answers=False,
             open_period=cfg.expire_minutes * 60,
         )
-        state["active_polls"][poll.poll.id] = answer_id
+        state["active_polls"][poll.poll.id] = {
+            "answer_id": answer_id,
+            "options": options,
+            "question": question,
+        }
         loop = asyncio.get_event_loop()
         loop.call_later(cfg.expire_minutes * 60 + cfg.expire_buffer_seconds, lambda pid=poll.poll.id: state["active_polls"].pop(pid, None))
         if ctx_job:
@@ -192,10 +197,11 @@ def register_quiz_handlers(app, storage_dir: str, quiz_group_id: Optional[int], 
         if poll_id in state["answered_polls"]:
             return
         state["answered_polls"].add(poll_id)
-        correct = state["active_polls"].get(poll_id)
-        if correct is None:
+        poll_data = state["active_polls"].get(poll_id)
+        if poll_data is None:
             return
-        if ans.option_ids and ans.option_ids[0] == correct:
+        answer_id = poll_data["answer_id"]
+        if ans.option_ids and ans.option_ids[0] == answer_id:
             _add_score(cfg, ans.user.id)
             await context.bot.send_message(
                 chat_id=cfg.quiz_group_id,
@@ -210,6 +216,7 @@ def register_quiz_handlers(app, storage_dir: str, quiz_group_id: Optional[int], 
                 text=f"{ans.user.mention_html()} ❌ Resposta incorreta. Tente novamente!",
                 parse_mode="HTML",
             )
+        state["active_polls"].pop(poll_id, None)
 
     async def quiz_test_command(update: Update, context):
         user_id = update.effective_user.id
@@ -243,6 +250,22 @@ def register_quiz_handlers(app, storage_dir: str, quiz_group_id: Optional[int], 
 
     async def delete_quiz(context):
         msg = context.job.data
+        poll = msg.poll
+        poll_id = poll.id if poll else None
+        poll_data = state["active_polls"].pop(poll_id, None) if poll_id else None
+
+        # Se ninguém respondeu, revela a resposta correta antes de apagar
+        if poll_id and poll_id not in state["answered_polls"] and poll_data:
+            answer_id = poll_data["answer_id"]
+            options = poll_data.get("options", [])
+            correct_text = options[answer_id] if 0 <= answer_id < len(options) else "(opção desconhecida)"
+            await context.bot.send_message(
+                chat_id=cfg.quiz_group_id,
+                message_thread_id=cfg.quiz_topic_id,
+                text=f"⏰ Tempo esgotado! Resposta correta: *{correct_text}*",
+                parse_mode="Markdown",
+            )
+
         await msg.delete()
 
     # Guarda admins para checagem rápida
