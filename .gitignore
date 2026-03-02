@@ -1,0 +1,41 @@
+**/__pycache__/**
+.venv
+.pytest_cache/
+*.py[cod]
+
+# Ambientes e configs locais
+.env
+.env.local
+
+# Bancos/dados locais
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+rankingbf.db
+loja/inventario.db
+financeiro/coins.db
+questions.json
+questions.db
+scores.db
+usuarios.json
+backup_ranking/
+old/
+*.log
+*.bak
+
+# Testes/experimentos
+testes_bot_quiz/*
+testes_bot_quiz_funciona/*
+ia_testes/*
+bots_exerimentais/*
+bot_pokedex/*
+concursos/*
+pk_info/*
+
+# Scripts de quiz fora do core
+bot_quiz.py
+bonus/participation_bonus.json
+implementar.md
+loja/imagens/*
+pokedex/cache/pokedex_cache.json
