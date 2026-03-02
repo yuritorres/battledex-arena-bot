@@ -6,7 +6,7 @@ from telegram import Update
 from telegram.ext import ContextTypes
 
 def get_usuarios_path():
-    return os.path.join(os.path.dirname(__file__), "usuarios.json")
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), "storage", "usuarios.json"))
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Registrar todo usuário que interagir

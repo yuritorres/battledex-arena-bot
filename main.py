@@ -39,11 +39,20 @@ logging.getLogger("urllib3").setLevel(logging.WARNING)
 # IDs de administradores
 import os
 from dotenv import load_dotenv
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '.env'))
+
+BASE_DIR = os.path.dirname(__file__)
+STORAGE_DIR = os.path.join(BASE_DIR, "storage")
+USERS_JSON_PATH = os.path.join(STORAGE_DIR, "usuarios.json")
+QUESTIONS_DB_PATH = os.path.join(STORAGE_DIR, "scores.db")
+RANKING_DB_PATH = os.path.join(STORAGE_DIR, "rankingbf.db")
+
+os.makedirs(STORAGE_DIR, exist_ok=True)
+
+load_dotenv(dotenv_path=os.path.join(BASE_DIR, '.env'))
 ADMINS = [int(x.strip()) for x in os.getenv("ADMINS", "").split(",")]
 
 # Caminho do banco de dados
-DB_PATH = os.path.join(os.path.dirname(__file__), "rankingbf.db")
+DB_PATH = RANKING_DB_PATH
 
 # Conectar ao banco de dados
 def create_connection():
@@ -110,7 +119,7 @@ async def info_command(update, context):
     if user.id not in ADMINS:
         await update.message.reply_text("⛔ Você não tem permissão para usar este comando.")
         return
-    usuarios_path = os.path.join(os.path.dirname(__file__), "usuarios.json")
+    usuarios_path = USERS_JSON_PATH
     try:
         with open(usuarios_path, "r", encoding="utf-8") as f:
             usuarios = json.load(f)
@@ -172,7 +181,7 @@ async def transferir_command(update, context):
 
     # Buscar nome do remetente no usuarios.json
     import json, os
-    usuarios_path = os.path.join(os.path.dirname(__file__), "usuarios.json")
+    usuarios_path = USERS_JSON_PATH
     try:
         with open(usuarios_path, "r", encoding="utf-8") as f:
             usuarios_map = json.load(f)
@@ -240,7 +249,7 @@ async def ia_command(update, context):
 # Handler para consultar saldo de battlecoins
 async def saldo_command(update, context):
     import json, os
-    usuarios_path = os.path.join(os.path.dirname(__file__), "usuarios.json")
+    usuarios_path = USERS_JSON_PATH
     nome = None
     if context.args:
         nome = context.args[0]
@@ -271,7 +280,7 @@ async def saldo_command(update, context):
 # Handler para comando /inventario
 async def inventario_command(update, context):
     import json, os
-    usuarios_path = os.path.join(os.path.dirname(__file__), "usuarios.json")
+    usuarios_path = USERS_JSON_PATH
     try:
         with open(usuarios_path, "r", encoding="utf-8") as f:
             usuarios_map = json.load(f)

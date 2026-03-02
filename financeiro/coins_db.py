@@ -1,8 +1,8 @@
 import os
 import sqlite3
 
-# Caminho do novo banco de dados exclusivo para saldos
-COINS_DB_PATH = os.path.join(os.path.dirname(__file__), "coins.db")
+STORAGE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "storage"))
+COINS_DB_PATH = os.path.join(STORAGE_DIR, "coins.db")
 
 # Função para conectar ao novo banco
 def create_coins_connection():
