@@ -173,6 +173,23 @@ async def comandos_command(update, context):
     )
     await update.message.reply_text(msg, parse_mode="HTML")
 
+# Handler /start para onboarding
+async def start_command(update, context):
+    msg = (
+        "👋 Bem-vindo ao BattleDex Arena!\n\n"
+        "Use /comandos para ver a lista completa. Principais atalhos:\n"
+        "• /addplayer <nome> — adiciona jogador (admin)\n"
+        "• /showranking — mostra ranking ELO\n"
+        "• /saldo — mostra suas battlecoins\n"
+        "• /loja — lista itens\n"
+        "• /inventario — mostra seu inventário\n"
+        "• /ia <mensagem> — pergunta à IA (restrito)\n"
+        "• /ping — teste rápido\n"
+        "• /quiztest — envia quiz (admins, se quiz habilitado)\n\n"
+        "Dica: mensagens iniciando com #ranking registram resultado (formato Jogador1 X x Y Jogador2)."
+    )
+    await update.message.reply_text(msg, parse_mode="HTML")
+
 # Ping simples para healthcheck
 async def ping_command(update, context):
     await update.message.reply_text("pong")
@@ -381,6 +398,7 @@ def main():
     app.add_handler(CommandHandler("saldo", saldo_command))
     app.add_handler(CommandHandler("coinsranking", coinsranking_command))
     app.add_handler(CommandHandler("comandos", comandos_command))
+    app.add_handler(CommandHandler("start", start_command))
     app.add_handler(CommandHandler("ping", ping_command))
     app.add_handler(CommandHandler("transferir", transferir_command))
     app.add_handler(CommandHandler("info", info_command))
