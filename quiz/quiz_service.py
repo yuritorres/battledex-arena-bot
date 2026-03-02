@@ -219,6 +219,11 @@ def register_quiz_handlers(app, storage_dir: str, quiz_group_id: Optional[int], 
             return
         await send_quiz(context.bot)
 
+    def _clear_jobs(name: str):
+        for job in app.job_queue.jobs():
+            if job.name == name:
+                job.schedule_removal()
+
     def schedule_daily_quizzes():
         now = datetime.now()
         start = datetime.combine(now.date(), time(hour=8))
@@ -226,7 +231,7 @@ def register_quiz_handlers(app, storage_dir: str, quiz_group_id: Optional[int], 
         if now > end:
             start += timedelta(days=1)
             end += timedelta(days=1)
-        app.job_queue.remove_jobs("daily_quiz")
+        _clear_jobs("daily_quiz")
         for _ in range(cfg.questions_per_day):
             rand = random.randint(0, int((end - start).total_seconds()))
             run_time = start + timedelta(seconds=rand)
