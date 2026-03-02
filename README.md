@@ -78,6 +78,12 @@ docker build -t battledex-arena-bot .
 docker run --env-file .env battledex-arena-bot
 ```
 
+Ou com docker-compose (persistindo a pasta `storage/`):
+
+```sh
+docker compose up -d --build
+```
+
 #### Observações sobre Docker
 - **O Docker NÃO usa venv**: as dependências são instaladas globalmente dentro do ambiente isolado do container.
 - **Nada é enviado para a nuvem automaticamente**: a imagem criada fica salva apenas localmente no servidor, a não ser que você faça um `docker push` manual para o Docker Hub ou outro registro.
@@ -94,20 +100,18 @@ docker run --env-file .env battledex-arena-bot
 
 - `main.py`: Bot principal do Telegram (ranking, loja, inventário, integração IA)
 - `ia_bot.py`: Integração utilitária com Gemini (usada pelo comando `/ia`)
-- `financeiro/`: Módulo de moedas e banco de dados de saldo
-    - `coins_db.py`: Funções de saldo, ranking e transferência de moedas
-    - `coins.db`: Banco de dados SQLite de moedas (saldo/ranking de coins)
+- `storage/`: **Todos os dados persistentes**
+    - `rankingbf.db`: Ranking ELO
+    - `coins.db`: Saldo/ranking de moedas
+    - `inventario.db`, `shop.db`: Loja e inventário
+    - `usuarios.json`: Cadastro de usuários
+    - `scores.db`, `questions.db`, `questions.json`: Dados do quiz
+    - `participation_bonus.json`: Histórico de bônus diário
+    - `pokedex_cache.json`: Cache da Pokédex
 - `loja/`: Módulos da loja e inventário de itens
-    - `shop.py`: Lista e busca itens da loja
-    - `comprar.py`: Lógica de compra de itens
-    - `inventario.py`: Gerenciamento de inventário dos usuários
-    - `cadastrar_itens.py`: Script utilitário para cadastrar itens (executado manualmente)
-    - `inventario.db`, `shop.db`: Bancos da loja/inventário
-- `bonus/participation_bonus.json`: Configuração de bônus de participação
-- `pokedex/cache/pokedex_cache.json`: Cache da Pokédex
-- `questions.db`, `questions.json`: Base de perguntas/respostas (quiz)
-- `usuarios.json`: Cadastro de usuários
-- `rankingbf.db`, `scores.db`: Bancos SQLite de ranking/placares
+    - `shop.py`, `comprar.py`, `inventario.py`, `cadastrar_itens.py`
+    - `imagens/`: Assets de imagens da loja
+- `financeiro/coins_db.py`: Funções de saldo, ranking e transferência de moedas
 - `.env`: Variáveis de ambiente (tokens e chave Gemini)
 
 

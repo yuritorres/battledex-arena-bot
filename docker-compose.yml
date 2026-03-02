@@ -1,0 +1,12 @@
+version: "3.9"
+
+services:
+  app:
+    build: .
+    container_name: battledex-arena-bot
+    env_file:
+      - .env
+    volumes:
+      - ./storage:/app/storage
+    restart: unless-stopped
+    command: ["python", "main.py"]
