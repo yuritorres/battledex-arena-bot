@@ -125,7 +125,7 @@ Pré-requisitos: Docker Desktop rodando no Windows (ou dockerd ativo no WSL) e a
 ## Estrutura dos arquivos e pastas
 
 - `main.py`: Bot principal do Telegram (ranking, loja, inventário, integração IA)
-- `ia_bot.py`: Integração utilitária com Gemini (usada pelo comando `/ia`)
+- `services/ia_bot.py`: Integração utilitária com Gemini (usada pelo comando `/ia`)
 - `storage/`: **Todos os dados persistentes**
     - `rankingbf.db`: Ranking ELO
     - `coins.db`: Saldo/ranking de moedas

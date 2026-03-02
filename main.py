@@ -7,7 +7,7 @@ from datetime import datetime
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 from pokedex.pokedex_command_handler import pokedex_command
-from ia_bot import ask_gemini
+from services.ia_bot import ask_gemini
 from quiz.quiz_service import register_quiz_handlers
 
 # Configuração do log com timezone de Brasília
@@ -87,8 +87,6 @@ from bonus.participation_bonus import registrar_participacao
 from bonus.registrar_usuario import registrar_usuario
 
 # Main
-from dotenv import load_dotenv
-#from ia_bot import ask_gemini
 from financeiro.coins_db import add_coins, get_coins, remove_coins, coins_leaderboard
 from telegram.ext import CommandHandler
 import sys
