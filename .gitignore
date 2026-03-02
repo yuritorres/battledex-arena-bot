@@ -35,3 +35,5 @@ implementar.md
 loja/imagens/*
 storage/participation_bonus.json
 storage/pokedex_cache.json
+
+external/*
