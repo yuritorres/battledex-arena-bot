@@ -13,9 +13,10 @@ on:
 
 env:
   IMAGE_NAME: ${{ vars.IMAGE_NAME || github.repository }}
-  REGISTRY: ${{ secrets.REGISTRY }}
-  REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
-  REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+  # Defaults to GHCR if secrets are not set
+  REGISTRY: ${{ secrets.REGISTRY || 'ghcr.io' }}
+  REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME || github.actor }}
+  REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD || secrets.GITHUB_TOKEN }}
 
 jobs:
   build-and-push:
