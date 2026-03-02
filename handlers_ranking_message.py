@@ -5,6 +5,8 @@ import json
 from telegram import Update
 from telegram.ext import ContextTypes
 
+BATTLE_COINS_REWARD = int(os.getenv("BATTLE_COINS_REWARD", "10"))
+
 def get_usuarios_path():
     return os.path.abspath(os.path.join(os.path.dirname(__file__), "storage", "usuarios.json"))
 
@@ -74,12 +76,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             id_vencedor = uid
             break
     if vencedor:
-        add_coins(vencedor, 10)
+        add_coins(vencedor, BATTLE_COINS_REWARD)
         msg = (
             f"🔥 {vencedor} venceu a batalha!\n\n"
             f"📉 {perdedor}: {elo_perdedor + pontos} → {elo_perdedor} (-{pontos} por derrota)\n\n"
             f"📈 {vencedor}: {elo_vencedor - pontos} → {elo_vencedor} (+{pontos} por vitória)\n"
-            f"💰 {vencedor} ganhou 10 Battlecoins!"
+            f"💰 {vencedor} ganhou {BATTLE_COINS_REWARD} Battlecoins!"
         )
     else:
         msg = (
