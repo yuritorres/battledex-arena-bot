@@ -9,6 +9,7 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 from pokedex.pokedex_command_handler import pokedex_command
 from ia_bot import ask_gemini
+from quiz.quiz_service import register_quiz_handlers
 
 # Configuração do log com timezone de Brasília
 class BrasiliaFormatter(logging.Formatter):
@@ -45,6 +46,10 @@ STORAGE_DIR = os.path.join(BASE_DIR, "storage")
 USERS_JSON_PATH = os.path.join(STORAGE_DIR, "usuarios.json")
 QUESTIONS_DB_PATH = os.path.join(STORAGE_DIR, "scores.db")
 RANKING_DB_PATH = os.path.join(STORAGE_DIR, "rankingbf.db")
+QUIZ_GROUP_ID_ENV = os.getenv("CHAT_ID_BF_ADM_QUIZ") or os.getenv("QUIZ_GROUP_ID")
+QUIZ_TOPIC_ID_ENV = os.getenv("QUIZ_TOPIC_ID")
+QUIZ_GROUP_ID = int(QUIZ_GROUP_ID_ENV) if QUIZ_GROUP_ID_ENV and QUIZ_GROUP_ID_ENV.lstrip('-').isdigit() else None
+QUIZ_TOPIC_ID = int(QUIZ_TOPIC_ID_ENV) if QUIZ_TOPIC_ID_ENV and QUIZ_TOPIC_ID_ENV.lstrip('-').isdigit() else None
 
 os.makedirs(STORAGE_DIR, exist_ok=True)
 
@@ -364,6 +369,9 @@ def main():
     create_table()
     app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 
+    # Guarda admins para outros módulos (quiz)
+    app.bot_data["ADMINS"] = set(ADMINS)
+
     app.add_handler(CommandHandler("addplayer", addplayer))
     app.add_handler(CommandHandler("dellplayer", dellplayer))
     app.add_handler(CommandHandler("showranking", showranking))
@@ -382,6 +390,8 @@ def main():
     app.add_handler(CommandHandler("premio", premio_command))  # Handler de prêmio para admins
     app.add_handler(CommandHandler("penalizar", penalizar_command))  # Handler de penalidade para admins
     app.add_handler(CommandHandler("pokedex", pokedex_command))
+    # Quiz integrado (usa OPENAI_API_KEY e CHAT_ID_BF_ADM_QUIZ ou QUIZ_GROUP_ID)
+    register_quiz_handlers(app, STORAGE_DIR, QUIZ_GROUP_ID, QUIZ_TOPIC_ID)
     # Handler pokedex foi movido para pokedex_command_handler.py
     app.add_handler(MessageHandler(
         filters.TEXT & ~filters.COMMAND, bonus_and_handle_message))
