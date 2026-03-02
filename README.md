@@ -94,6 +94,10 @@ docker compose up -d --build
    ```
 3. Para parar: `docker compose down`.
 
+##### Logs
+- Todos os serviços: `docker compose logs -f --tail=200`
+- Só o container principal: `docker logs -f --tail=200 battledex-arena-bot`
+
 Pré-requisitos: Docker Desktop rodando no Windows (ou dockerd ativo no WSL) e arquivo `.env` na raiz do projeto.
 
 #### Observações sobre Docker
