@@ -59,13 +59,11 @@ os.makedirs(STORAGE_DIR, exist_ok=True)
 load_dotenv(dotenv_path=os.path.join(BASE_DIR, '.env'))
 ADMINS = [int(x.strip()) for x in os.getenv("ADMINS", "").split(",")]
 
-# Handlers de comandos de ranking agora estão em handlers_ranking.py
-from handlers_ranking import addplayer, dellplayer, showranking, resetelo, reseteloall
+from handlers.handlers_ranking import addplayer, dellplayer, showranking, resetelo, reseteloall
 from ranking_db import calcular_pontos, add_player, update_elo, create_table
 from bonus.premios_command_handler import premio_command
 
-# Handler handle_message foi movido para handlers_ranking_message.py
-from handlers_ranking_message import handle_message
+from handlers.handlers_ranking_message import handle_message
 from bonus.participation_bonus import registrar_participacao
 from bonus.registrar_usuario import registrar_usuario
 

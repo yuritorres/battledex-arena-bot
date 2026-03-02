@@ -8,7 +8,8 @@ from telegram.ext import ContextTypes
 BATTLE_COINS_REWARD = int(os.getenv("BATTLE_COINS_REWARD", "10"))
 
 def get_usuarios_path():
-    return os.path.abspath(os.path.join(os.path.dirname(__file__), "storage", "usuarios.json"))
+    # Caminho para storage/usuarios.json na raiz do projeto
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "storage", "usuarios.json"))
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Registrar todo usuário que interagir
@@ -31,7 +32,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("❌ Batalha ignorada: link do replay inválido ou ausente.")
         return
 
-    from tel import create_connection
+    from ranking_db import create_connection
     conn = create_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT 1 FROM replays WHERE url = ?", (link,))
