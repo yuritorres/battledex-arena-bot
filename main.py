@@ -2,6 +2,8 @@ import logging
 import asyncio
 import os
 import re
+import json
+from services.replay_analyzer import analyze_replay, format_player_stats
 import pytz
 from datetime import datetime
 from telegram import Update
@@ -45,6 +47,7 @@ STORAGE_DIR = os.path.join(BASE_DIR, "storage")
 USERS_JSON_PATH = os.path.join(STORAGE_DIR, "usuarios.json")
 QUESTIONS_DB_PATH = os.path.join(STORAGE_DIR, "scores.db")
 RANKING_DB_PATH = os.path.join(STORAGE_DIR, "rankingbf.db")
+REPLAY_STATS_PATH = os.path.join(STORAGE_DIR, "replay_stats.json")
 QUIZ_GROUP_ID_ENV = os.getenv("CHAT_ID_BF_ADM_QUIZ") or os.getenv("QUIZ_GROUP_ID")
 QUIZ_TOPIC_ID_ENV = os.getenv("QUIZ_TOPIC_ID")
 QUIZ_GROUP_ID = int(QUIZ_GROUP_ID_ENV) if QUIZ_GROUP_ID_ENV and QUIZ_GROUP_ID_ENV.lstrip('-').isdigit() else None
@@ -158,6 +161,8 @@ async def comandos_command(update, context):
         "/loja — Lista itens disponíveis na loja\n"
         "/saldo — Mostra seu saldo de battlecoins\n"
         "/coinsranking — Ranking de battlecoins\n"
+        "/replay &lt;link&gt; — Analisa replay do Showdown\n"
+        "/replaystats &lt;nome&gt; [tier] — Estatísticas agregadas de replays\n"
         "/broadcast &lt;mensagem&gt; — Envia anúncio a todos que já interagiram (admin)\n"
         "/info — Lista todos os usuários registrados\n"
         "/ia &lt;mensagem&gt; — Responde usando Gemini IA (restrito ao Torres)\n"
@@ -203,6 +208,30 @@ async def broadcast_command(update, context):
                 await update.message.reply_text(f"Falha ao publicar o anúncio (fallback sem tópico): {e2}")
                 return
         await update.message.reply_text(f"Falha ao publicar o anúncio: {e}")
+
+
+# /replay command: fetch and analyze Showdown replay
+async def replay_command(update, context):
+    if not context.args:
+        await update.message.reply_text("Uso: /replay <link do replay do Showdown>")
+        return
+    url = context.args[0]
+    try:
+        text, _ = analyze_replay(url, REPLAY_STATS_PATH)
+        await update.message.reply_text(text)
+    except Exception as exc:
+        await update.message.reply_text(f"Falha ao analisar replay: {exc}")
+
+
+# /replaystats command: show aggregated stats per player (optionally per tier)
+async def replaystats_command(update, context):
+    if not context.args:
+        await update.message.reply_text("Uso: /replaystats <nome> [tier]")
+        return
+    nome = context.args[0]
+    tier = context.args[1] if len(context.args) > 1 else None
+    text = format_player_stats(REPLAY_STATS_PATH, nome, tier)
+    await update.message.reply_text(text)
 
 # Handler /start para onboarding
 async def start_command(update, context):
@@ -473,6 +502,8 @@ def main():
     app.add_handler(CommandHandler("saldo", saldo_command))
     app.add_handler(CommandHandler("coinsranking", coinsranking_command))
     app.add_handler(CommandHandler("comandos", comandos_command))
+    app.add_handler(CommandHandler("replay", replay_command))
+    app.add_handler(CommandHandler("replaystats", replaystats_command))
     app.add_handler(CommandHandler("broadcast", broadcast_command))
     app.add_handler(CommandHandler("start", start_command))
     app.add_handler(CommandHandler("ping", ping_command))
