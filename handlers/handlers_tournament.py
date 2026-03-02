@@ -49,6 +49,9 @@ async def cmd_criar(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def cmd_abrir(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not _is_admin(update, context):
+        await update.message.reply_text("❌ Apenas administradores podem abrir campeonatos.")
+        return
     if not context.args or not context.args[0].isdigit():
         await update.message.reply_text("Uso: /<cmd> <id>")
         return
