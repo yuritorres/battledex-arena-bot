@@ -168,6 +168,10 @@ async def comandos_command(update, context):
     )
     await update.message.reply_text(msg, parse_mode="HTML")
 
+# Ping simples para healthcheck
+async def ping_command(update, context):
+    await update.message.reply_text("pong")
+
 # Handler para penalizar participante (remover battlecoins)
 from admin_gui.penalizar_command_handler import penalizar_command
 
@@ -369,6 +373,7 @@ def main():
     app.add_handler(CommandHandler("saldo", saldo_command))
     app.add_handler(CommandHandler("coinsranking", coinsranking_command))
     app.add_handler(CommandHandler("comandos", comandos_command))
+    app.add_handler(CommandHandler("ping", ping_command))
     app.add_handler(CommandHandler("transferir", transferir_command))
     app.add_handler(CommandHandler("info", info_command))
     app.add_handler(CommandHandler("loja", loja_command))
