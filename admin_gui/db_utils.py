@@ -3,15 +3,16 @@ import sqlite3
 import json
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+STORAGE_DIR = os.path.join(BASE_DIR, 'storage')
 
 DB_PATHS = {
-    'ranking': os.path.join(BASE_DIR, 'rankingbf.db'),
-    'coins': os.path.join(BASE_DIR, 'financeiro', 'coins.db'),
-    'inventario': os.path.join(BASE_DIR, 'loja', 'inventario.db'),
-    'shop': os.path.join(BASE_DIR, 'loja', 'shop.db'),
+    'ranking': os.path.join(STORAGE_DIR, 'rankingbf.db'),
+    'coins': os.path.join(STORAGE_DIR, 'coins.db'),
+    'inventario': os.path.join(STORAGE_DIR, 'inventario.db'),
+    'shop': os.path.join(STORAGE_DIR, 'shop.db'),
 }
 
-BONUS_JSON_PATH = os.path.join(BASE_DIR, 'bonus', 'participation_bonus.json')
+BONUS_JSON_PATH = os.path.join(STORAGE_DIR, 'participation_bonus.json')
 
 # Funções utilitárias para conexão
 
