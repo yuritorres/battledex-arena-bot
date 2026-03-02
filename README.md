@@ -20,11 +20,21 @@ cd battledex-arena-bot
 
 ### 2. Configure o arquivo `.env`
 
-Crie um arquivo `.env` na pasta `battledex-arena-bot` com:
+Crie um arquivo `.env` na pasta `battledex-arena-bot` com (exemplo):
 ```
 GEMINI_API_KEY=SuaChaveGeminiAqui
+OPENAI_API_KEY=SuaChaveOpenAIAqui
 TELEGRAM_TOKEN=SeuTokenTelegramAqui
 ADMINS=123456789,987654321
+
+# IDs do grupo/tópico
+CHAT_ID_BF_ADM=-123456789
+CHAT_ID_BF_ADM_QUIZ=-123456789
+LOJA_GROUP_ID=-123456789
+LOJA_TOPIC_ID=123
+
+# Outros ajustes
+BATTLE_COINS_REWARD=10
 ```
 
 - `ADMINS` deve conter os IDs dos administradores do bot, separados por vírgula. Exemplo: `ADMINS=123456789,987654321`
