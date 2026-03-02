@@ -39,3 +39,5 @@ bonus/participation_bonus.json
 implementar.md
 loja/imagens/*
 pokedex/cache/pokedex_cache.json
+storage/participation_bonus.json
+storage/pokedex_cache.json

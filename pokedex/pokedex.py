@@ -40,9 +40,6 @@ def _save_cache(cache):
     if not os.path.exists(STORAGE_DIR):
         print(f"[POKEDEX] Criando pasta de cache para salvar: {STORAGE_DIR}")
         os.makedirs(STORAGE_DIR, exist_ok=True)
-    if not os.path.exists(CACHE_DIR):
-        print(f"[POKEDEX] Criando pasta de cache para salvar: {CACHE_DIR}")
-        os.makedirs(CACHE_DIR, exist_ok=True)
     try:
         with open(CACHE_FILE, 'w', encoding='utf-8') as f:
             print(f"[POKEDEX] Salvando cache em {CACHE_FILE}")
