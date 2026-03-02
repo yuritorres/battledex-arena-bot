@@ -52,3 +52,13 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.TAG }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           context: .
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.vars.outputs.TAG }}
+          release_name: ${{ steps.vars.outputs.TAG }}
+          draft: false
+          prerelease: false
