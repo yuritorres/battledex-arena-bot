@@ -49,6 +49,10 @@ QUIZ_GROUP_ID_ENV = os.getenv("CHAT_ID_BF_ADM_QUIZ") or os.getenv("QUIZ_GROUP_ID
 QUIZ_TOPIC_ID_ENV = os.getenv("QUIZ_TOPIC_ID")
 QUIZ_GROUP_ID = int(QUIZ_GROUP_ID_ENV) if QUIZ_GROUP_ID_ENV and QUIZ_GROUP_ID_ENV.lstrip('-').isdigit() else None
 QUIZ_TOPIC_ID = int(QUIZ_TOPIC_ID_ENV) if QUIZ_TOPIC_ID_ENV and QUIZ_TOPIC_ID_ENV.lstrip('-').isdigit() else None
+LOJA_GROUP_ID_ENV = os.getenv("LOJA_GROUP_ID")
+LOJA_TOPIC_ID_ENV = os.getenv("LOJA_TOPIC_ID")
+LOJA_GROUP_ID = int(LOJA_GROUP_ID_ENV) if LOJA_GROUP_ID_ENV and LOJA_GROUP_ID_ENV.lstrip('-').isdigit() else None
+LOJA_TOPIC_ID = int(LOJA_TOPIC_ID_ENV) if LOJA_TOPIC_ID_ENV and LOJA_TOPIC_ID_ENV.lstrip('-').isdigit() else None
 
 os.makedirs(STORAGE_DIR, exist_ok=True)
 
@@ -323,9 +327,32 @@ async def comprar_command(update, context):
 
 # Handler para comando /loja
 async def loja_command(update, context):
+    chat_id = update.effective_chat.id if update.effective_chat else None
+    thread_id = update.message.message_thread_id if update.message else None
+
+    # Restringe o comando ao grupo/tópico configurado (se fornecido)
+    if LOJA_GROUP_ID and chat_id and chat_id != LOJA_GROUP_ID:
+        await context.bot.send_message(
+            chat_id=chat_id,
+            text="Este comando só pode ser usado no grupo/tópico da loja configurado.",
+        )
+        return
+    if LOJA_TOPIC_ID:
+        if thread_id != LOJA_TOPIC_ID:
+            await context.bot.send_message(
+                chat_id=chat_id,
+                message_thread_id=thread_id,
+                text="Este comando só pode ser usado no tópico da loja configurado.",
+            )
+            return
+
     itens = listar_itens()
     if not itens:
-        await update.message.reply_text("A loja está vazia no momento.")
+        await context.bot.send_message(
+            chat_id=chat_id,
+            message_thread_id=thread_id,
+            text="A loja está vazia no momento.",
+        )
         return
     for item in itens:
         id_, id_item, nome, preco, imagem = item
@@ -334,9 +361,20 @@ async def loja_command(update, context):
             img_path = os.path.join(IMAGES_DIR, imagem)
             if os.path.exists(img_path):
                 with open(img_path, "rb") as img_file:
-                    await update.message.reply_photo(img_file, caption=msg, parse_mode="Markdown")
+                    await context.bot.send_photo(
+                        chat_id=chat_id,
+                        message_thread_id=thread_id,
+                        photo=img_file,
+                        caption=msg,
+                        parse_mode="Markdown",
+                    )
                 continue
-        await update.message.reply_text(msg, parse_mode="Markdown")
+        await context.bot.send_message(
+            chat_id=chat_id,
+            message_thread_id=thread_id,
+            text=msg,
+            parse_mode="Markdown",
+        )
 
 # Handler para ranking de battlecoins
 async def coinsranking_command(update, context):
