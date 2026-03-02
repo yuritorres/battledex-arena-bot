@@ -1,6 +1,6 @@
-# Bot Telegram Ranking + Gemini IA
+# BattleDex Arena — Bot Telegram (Ranking + Gemini IA)
 
-Este projeto contém um bot para Telegram que gerencia ranking de jogadores (ELO, vitórias, derrotas) e integra respostas por IA (Gemini/Google Generative AI) via comando `/ia`.
+Este projeto contém um bot para Telegram voltado para a comunidade de batalhas estilo Pokémon Showdown. Ele gerencia ranking de jogadores (ELO, vitórias, derrotas) e integra respostas por IA (Gemini/Google Generative AI) via comando `/ia`.
 
 ## Funcionalidades
 - Ranking de jogadores (adicionar, remover, mostrar ranking, resetar ELO)
@@ -15,12 +15,12 @@ Este projeto contém um bot para Telegram que gerencia ranking de jogadores (ELO
 
 ```
 git clone <repo-url>
-cd blockchain-torres/telegram
+cd battledex-arena-bot
 ```
 
 ### 2. Configure o arquivo `.env`
 
-Crie um arquivo `.env` na pasta `telegram` com:
+Crie um arquivo `.env` na pasta `battledex-arena-bot` com:
 ```
 GEMINI_API_KEY=SuaChaveGeminiAqui
 TELEGRAM_TOKEN=SeuTokenTelegramAqui
@@ -74,8 +74,8 @@ python main.py
 ### 6. Usando Docker
 
 ```sh
-docker build -t telegram-gemini-bot .
-docker run --env-file .env telegram-gemini-bot
+docker build -t battledex-arena-bot .
+docker run --env-file .env battledex-arena-bot
 ```
 
 #### Observações sobre Docker
