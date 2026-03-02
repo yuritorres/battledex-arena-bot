@@ -54,6 +54,15 @@ LOJA_TOPIC_ID_ENV = os.getenv("LOJA_TOPIC_ID")
 LOJA_GROUP_ID = int(LOJA_GROUP_ID_ENV) if LOJA_GROUP_ID_ENV and LOJA_GROUP_ID_ENV.lstrip('-').isdigit() else None
 LOJA_TOPIC_ID = int(LOJA_TOPIC_ID_ENV) if LOJA_TOPIC_ID_ENV and LOJA_TOPIC_ID_ENV.lstrip('-').isdigit() else None
 
+# Comandos de campeonato configuráveis via .env
+CAMP_CMD_CRIAR = os.getenv("CAMP_CMD_CRIAR", "/camp_criar")
+CAMP_CMD_ABRIR = os.getenv("CAMP_CMD_ABRIR", "/camp_abrir")
+CAMP_CMD_FECHAR = os.getenv("CAMP_CMD_FECHAR", "/camp_fechar")
+CAMP_CMD_RESULTADO = os.getenv("CAMP_CMD_RESULTADO", "/camp_resultado")
+CAMP_CMD_RANKING = os.getenv("CAMP_CMD_RANKING", "/camp_ranking")
+CAMP_CMD_LISTA = os.getenv("CAMP_CMD_LISTA", "/camp_lista")
+CAMP_CMD_ADDPLAYER = os.getenv("CAMP_CMD_ADDPLAYER", "/camp_addplayer")
+
 os.makedirs(STORAGE_DIR, exist_ok=True)
 
 load_dotenv(dotenv_path=os.path.join(BASE_DIR, '.env'))
@@ -61,9 +70,19 @@ ADMINS = [int(x.strip()) for x in os.getenv("ADMINS", "").split(",")]
 
 from handlers.handlers_ranking import addplayer, dellplayer, showranking, resetelo, reseteloall
 from ranking_db import calcular_pontos, add_player, update_elo, create_table
+from tournaments_db import create_tables as create_tournaments_tables
 from bonus.premios_command_handler import premio_command
 
 from handlers.handlers_ranking_message import handle_message
+from handlers.handlers_tournament import (
+    cmd_criar as camp_cmd_criar,
+    cmd_abrir as camp_cmd_abrir,
+    cmd_fechar as camp_cmd_fechar,
+    cmd_resultado as camp_cmd_resultado,
+    cmd_ranking as camp_cmd_ranking,
+    cmd_listar as camp_cmd_listar,
+    cmd_addplayer as camp_cmd_addplayer,
+)
 from bonus.participation_bonus import registrar_participacao
 from bonus.registrar_usuario import registrar_usuario
 
@@ -393,6 +412,7 @@ def main():
     load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '.env'))
     TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
     create_table()
+    create_tournaments_tables()
     app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 
     # Guarda admins para outros módulos (quiz)
@@ -403,6 +423,15 @@ def main():
     app.add_handler(CommandHandler("showranking", showranking))
     app.add_handler(CommandHandler("resetelo", resetelo))
     app.add_handler(CommandHandler("reseteloall", reseteloall))
+
+    # Comandos de campeonatos (nomes configuráveis via .env)
+    app.add_handler(CommandHandler(CAMP_CMD_CRIAR.lstrip('/'), camp_cmd_criar))
+    app.add_handler(CommandHandler(CAMP_CMD_ABRIR.lstrip('/'), camp_cmd_abrir))
+    app.add_handler(CommandHandler(CAMP_CMD_FECHAR.lstrip('/'), camp_cmd_fechar))
+    app.add_handler(CommandHandler(CAMP_CMD_RESULTADO.lstrip('/'), camp_cmd_resultado))
+    app.add_handler(CommandHandler(CAMP_CMD_RANKING.lstrip('/'), camp_cmd_ranking))
+    app.add_handler(CommandHandler(CAMP_CMD_LISTA.lstrip('/'), camp_cmd_listar))
+    app.add_handler(CommandHandler(CAMP_CMD_ADDPLAYER.lstrip('/'), camp_cmd_addplayer))
     app.add_handler(CommandHandler("ia", ia_command))
     app.add_handler(CommandHandler("saldo", saldo_command))
     app.add_handler(CommandHandler("coinsranking", coinsranking_command))
