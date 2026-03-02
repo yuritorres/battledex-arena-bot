@@ -84,6 +84,18 @@ Ou com docker-compose (persistindo a pasta `storage/`):
 docker compose up -d --build
 ```
 
+##### Rodando via WSL/Ubuntu
+1. Abra o Ubuntu pelo Windows Terminal: `wsl -d Ubuntu` (se tiver outra distro, ajuste o nome). Para listar: `wsl -l -v`.
+2. No shell do WSL:
+   ```bash
+   cd /mnt/d/Blockchain/battledex-arena-bot  # ou vá para a pasta atual do projeto
+   docker compose up -d --build
+   docker compose logs -f
+   ```
+3. Para parar: `docker compose down`.
+
+Pré-requisitos: Docker Desktop rodando no Windows (ou dockerd ativo no WSL) e arquivo `.env` na raiz do projeto.
+
 #### Observações sobre Docker
 - **O Docker NÃO usa venv**: as dependências são instaladas globalmente dentro do ambiente isolado do container.
 - **Nada é enviado para a nuvem automaticamente**: a imagem criada fica salva apenas localmente no servidor, a não ser que você faça um `docker push` manual para o Docker Hub ou outro registro.
