@@ -186,10 +186,22 @@ async def broadcast_command(update, context):
 
     target_chat = BROADCAST_CHAT_ID
     thread_id = BROADCAST_TOPIC_ID or (update.message.message_thread_id if update.message else None)
+
+    # Tenta com thread (se houver) e faz fallback sem thread quando o tópico não existir
     try:
         await context.bot.send_message(chat_id=target_chat, message_thread_id=thread_id, text=texto)
         await update.message.reply_text("✅ Anúncio publicado no grupo configurado.")
     except Exception as e:
+        error_msg = str(e)
+        # Se falhou por tópico inexistente, tenta sem thread
+        if "Message thread not found" in error_msg or "message thread" in error_msg.lower():
+            try:
+                await context.bot.send_message(chat_id=target_chat, text=texto)
+                await update.message.reply_text("✅ Anúncio publicado no grupo (sem tópico, fallback).")
+                return
+            except Exception as e2:
+                await update.message.reply_text(f"Falha ao publicar o anúncio (fallback sem tópico): {e2}")
+                return
         await update.message.reply_text(f"Falha ao publicar o anúncio: {e}")
 
 # Handler /start para onboarding
