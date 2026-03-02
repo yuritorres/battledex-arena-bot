@@ -3,6 +3,7 @@ import json
 import random
 import asyncio
 import sqlite3
+import logging
 from datetime import datetime, timedelta, time
 from typing import Dict, Optional, List
 
@@ -129,12 +130,13 @@ def register_quiz_handlers(app, storage_dir: str, quiz_group_id: Optional[int], 
         quiz_group_id=quiz_group_id,
         quiz_topic_id=quiz_topic_id,
     )
+    logger = logging.getLogger(__name__)
     client = _get_client()
     if not client:
-        app.logger.warning("Quiz desabilitado: OPENAI_API_KEY ausente ou pacote openai não instalado.")
+        logger.warning("Quiz desabilitado: OPENAI_API_KEY ausente ou pacote openai não instalado.")
         return
     if not cfg.quiz_group_id:
-        app.logger.warning("Quiz desabilitado: defina QUIZ_GROUP_ID ou CHAT_ID_BF_ADM_QUIZ no .env")
+        logger.warning("Quiz desabilitado: defina QUIZ_GROUP_ID ou CHAT_ID_BF_ADM_QUIZ no .env")
         return
 
     _init_dbs(cfg)
@@ -257,4 +259,4 @@ def register_quiz_handlers(app, storage_dir: str, quiz_group_id: Optional[int], 
     app.job_queue.run_once(lambda ctx: asyncio.create_task(send_quiz(ctx.bot)), when=0, name="startup_quiz")
     schedule_daily_quizzes()
 
-    app.logger.info("Quiz habilitado e integrado (grupo=%s, tópico=%s)", cfg.quiz_group_id, cfg.quiz_topic_id)
+    logger.info("Quiz habilitado e integrado (grupo=%s, tópico=%s)", cfg.quiz_group_id, cfg.quiz_topic_id)
