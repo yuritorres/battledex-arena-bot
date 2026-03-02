@@ -96,15 +96,19 @@ docker run --env-file .env battledex-arena-bot
 - `ia_bot.py`: Integração utilitária com Gemini (usada pelo comando `/ia`)
 - `financeiro/`: Módulo de moedas e banco de dados de saldo
     - `coins_db.py`: Funções de saldo, ranking e transferência de moedas
-    - `coins.db`: Banco de dados SQLite de moedas
+    - `coins.db`: Banco de dados SQLite de moedas (saldo/ranking de coins)
 - `loja/`: Módulos da loja e inventário de itens
     - `shop.py`: Lista e busca itens da loja
     - `comprar.py`: Lógica de compra de itens
     - `inventario.py`: Gerenciamento de inventário dos usuários
     - `cadastrar_itens.py`: Script utilitário para cadastrar itens (executado manualmente)
-- `.env`: Variáveis de ambiente (tokens e chave Gemini)
+    - `inventario.db`, `shop.db`: Bancos da loja/inventário
+- `bonus/participation_bonus.json`: Configuração de bônus de participação
+- `pokedex/cache/pokedex_cache.json`: Cache da Pokédex
+- `questions.db`, `questions.json`: Base de perguntas/respostas (quiz)
 - `usuarios.json`: Cadastro de usuários
-- `coins.db`, `rankingbf.db`: Bancos de dados SQLite
+- `rankingbf.db`, `scores.db`: Bancos SQLite de ranking/placares
+- `.env`: Variáveis de ambiente (tokens e chave Gemini)
 
 
 ---
