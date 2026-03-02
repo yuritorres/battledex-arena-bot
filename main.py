@@ -54,6 +54,12 @@ LOJA_TOPIC_ID_ENV = os.getenv("LOJA_TOPIC_ID")
 LOJA_GROUP_ID = int(LOJA_GROUP_ID_ENV) if LOJA_GROUP_ID_ENV and LOJA_GROUP_ID_ENV.lstrip('-').isdigit() else None
 LOJA_TOPIC_ID = int(LOJA_TOPIC_ID_ENV) if LOJA_TOPIC_ID_ENV and LOJA_TOPIC_ID_ENV.lstrip('-').isdigit() else None
 
+# Grupo para anúncios
+BROADCAST_CHAT_ID_ENV = os.getenv("BROADCAST_CHAT_ID")
+BROADCAST_CHAT_ID = int(BROADCAST_CHAT_ID_ENV) if BROADCAST_CHAT_ID_ENV and BROADCAST_CHAT_ID_ENV.lstrip('-').isdigit() else None
+BROADCAST_TOPIC_ID_ENV = os.getenv("BROADCAST_TOPIC_ID")
+BROADCAST_TOPIC_ID = int(BROADCAST_TOPIC_ID_ENV) if BROADCAST_TOPIC_ID_ENV and BROADCAST_TOPIC_ID_ENV.lstrip('-').isdigit() else None
+
 # Comandos de campeonato configuráveis via .env
 CAMP_CMD_CRIAR = os.getenv("CAMP_CMD_CRIAR", "/camp_criar")
 CAMP_CMD_ABRIR = os.getenv("CAMP_CMD_ABRIR", "/camp_abrir")
@@ -152,6 +158,7 @@ async def comandos_command(update, context):
         "/loja — Lista itens disponíveis na loja\n"
         "/saldo — Mostra seu saldo de battlecoins\n"
         "/coinsranking — Ranking de battlecoins\n"
+        "/broadcast &lt;mensagem&gt; — Envia anúncio a todos que já interagiram (admin)\n"
         "/info — Lista todos os usuários registrados\n"
         "/ia &lt;mensagem&gt; — Responde usando Gemini IA (restrito ao Torres)\n"
         "/penalizar &lt;Usuário&gt; &lt;quantidade&gt; — Remove battlecoins de um participante (admin)\n"
@@ -159,6 +166,31 @@ async def comandos_command(update, context):
         "\n<b>Comandos de ranking também podem ser enviados como mensagem iniciando por #ranking</b>"
     )
     await update.message.reply_text(msg, parse_mode="HTML")
+
+
+# Broadcast admin-only
+async def broadcast_command(update, context):
+    user_id = update.effective_user.id
+    if user_id not in ADMINS:
+        await update.message.reply_text("⛔ Você não tem permissão para usar este comando.")
+        return
+
+    texto = " ".join(context.args).strip()
+    if not texto:
+        await update.message.reply_text("Uso: /broadcast <mensagem a ser enviada ao grupo de anúncios>")
+        return
+
+    if not BROADCAST_CHAT_ID:
+        await update.message.reply_text("Defina BROADCAST_CHAT_ID no .env para onde o anúncio deve ser enviado.")
+        return
+
+    target_chat = BROADCAST_CHAT_ID
+    thread_id = BROADCAST_TOPIC_ID or (update.message.message_thread_id if update.message else None)
+    try:
+        await context.bot.send_message(chat_id=target_chat, message_thread_id=thread_id, text=texto)
+        await update.message.reply_text("✅ Anúncio publicado no grupo configurado.")
+    except Exception as e:
+        await update.message.reply_text(f"Falha ao publicar o anúncio: {e}")
 
 # Handler /start para onboarding
 async def start_command(update, context):
@@ -429,6 +461,7 @@ def main():
     app.add_handler(CommandHandler("saldo", saldo_command))
     app.add_handler(CommandHandler("coinsranking", coinsranking_command))
     app.add_handler(CommandHandler("comandos", comandos_command))
+    app.add_handler(CommandHandler("broadcast", broadcast_command))
     app.add_handler(CommandHandler("start", start_command))
     app.add_handler(CommandHandler("ping", ping_command))
     app.add_handler(CommandHandler("transferir", transferir_command))
