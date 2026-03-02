@@ -113,7 +113,7 @@ def analyze_log(log_text: str):
 
 def summarize_replay(data: Dict) -> Dict:
     log_text = data.get("log", "")
-    winner = data.get("winner", "?")
+    winner = data.get("winner") or "?"
     # Extrai nomes dos jogadores
     p1, p2 = None, None
     players_list = data.get("players")
@@ -135,6 +135,26 @@ def summarize_replay(data: Dict) -> Dict:
         p1 = data.get("p1", "p1")
     if not p2:
         p2 = data.get("p2", "p2")
+
+    # Se winner não veio no JSON, tentar extrair da linha '|win|Nome'
+    if winner == "?":
+        for line in log_text.splitlines():
+            if line.startswith("|win|"):
+                parts = line.split("|")
+                if len(parts) > 2:
+                    winner = parts[2]
+                    break
+        # Regex fallback: captura qualquer '|win|nome'
+        if winner == "?":
+            import re as _re
+            m = _re.search(r"\|win\|([^|\n]+)", log_text)
+            if m:
+                winner = m.group(1)
+        # Fallback final: procurar mensagem 'won the battle'
+        if winner == "?":
+            m = _re.search(r"([^|\n]+) won the battle!", log_text)
+            if m:
+                winner = m.group(1).strip()
     tier = data.get("format", "?")
 
     parsed = analyze_log(log_text)
