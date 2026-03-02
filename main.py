@@ -2,7 +2,6 @@ import logging
 import asyncio
 import os
 import re
-import sqlite3
 import pytz
 from datetime import datetime
 from telegram import Update
@@ -56,34 +55,9 @@ os.makedirs(STORAGE_DIR, exist_ok=True)
 load_dotenv(dotenv_path=os.path.join(BASE_DIR, '.env'))
 ADMINS = [int(x.strip()) for x in os.getenv("ADMINS", "").split(",")]
 
-# Caminho do banco de dados
-DB_PATH = RANKING_DB_PATH
-
-# Conectar ao banco de dados
-def create_connection():
-    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-    conn = sqlite3.connect(DB_PATH)
-    return conn
-
-# Criar tabela se não existir
-def create_table():
-    conn = create_connection()
-    cursor = conn.cursor()
-    cursor.execute('''CREATE TABLE IF NOT EXISTS ranking (
-        nome TEXT PRIMARY KEY,
-        elo INTEGER DEFAULT 1000,
-        vitorias INTEGER DEFAULT 0,
-        derrotas INTEGER DEFAULT 0
-    )''')
-    cursor.execute('''CREATE TABLE IF NOT EXISTS replays (
-        url TEXT PRIMARY KEY
-    )''')
-    conn.commit()
-    conn.close()
-
 # Handlers de comandos de ranking agora estão em handlers_ranking.py
 from handlers_ranking import addplayer, dellplayer, showranking, resetelo, reseteloall
-from ranking_db import calcular_pontos, add_player, update_elo
+from ranking_db import calcular_pontos, add_player, update_elo, create_table
 from bonus.premios_command_handler import premio_command
 
 # Handler handle_message foi movido para handlers_ranking_message.py
@@ -102,7 +76,6 @@ sys.path.append(os.path.join(os.path.dirname(__file__), 'loja'))
 from loja.shop import listar_itens, IMAGES_DIR, buscar_item
 from loja.comprar import comprar_item
 from loja.inventario import listar_inventario
-import sqlite3
 
 # Handler composto para bônus de participação + handle_message
 async def bonus_and_handle_message(update, context):
@@ -431,7 +404,6 @@ if __name__ == '__main__':
 
 import os
 import re
-import sqlite3
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 
@@ -462,284 +434,9 @@ from dotenv import load_dotenv
 
 from config import ADMINS
 
-# Caminho do banco de dados
-DB_PATH = os.path.join(os.path.dirname(__file__), "rankingbf.db")
-
-# Conectar ao banco de dados
-
-
-def create_connection():
-    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-    conn = sqlite3.connect(DB_PATH)
-    return conn
-
-# Criar tabela se não existir
-
-
-def create_table():
-    conn = create_connection()
-    cursor = conn.cursor()
-    cursor.execute('''CREATE TABLE IF NOT EXISTS ranking (
-        nome TEXT PRIMARY KEY,
-        elo INTEGER DEFAULT 1000,
-        vitorias INTEGER DEFAULT 0,
-        derrotas INTEGER DEFAULT 0
-    )''')
-    cursor.execute('''CREATE TABLE IF NOT EXISTS replays (
-        url TEXT PRIMARY KEY
-    )''')
-    conn.commit()
-    conn.close()
-
-# Adicionar jogador
-def add_player(nome):
-    conn = create_connection()
-    cursor = conn.cursor()
-    cursor.execute("INSERT OR IGNORE INTO ranking (nome) VALUES (?)", (nome,))
-    conn.commit()
-    conn.close()
-
-# Remover jogador
-def remove_player(nome):
-    conn = create_connection()
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM ranking WHERE nome = ?", (nome,))
-    conn.commit()
-    conn.close()
-
-# Mostrar ranking
-def get_ranking():
-    conn = create_connection()
-    cursor = conn.cursor()
-    cursor.execute(
-        "SELECT nome, elo, vitorias, derrotas FROM ranking ORDER BY elo DESC")
-    rows = cursor.fetchall()
-    conn.close()
-
-    ranking_msg = "📊 Ranking BF 🔰\n\n"
-    for i, row in enumerate(rows, 1):
-        medal = "⭐️" if i == 1 else f"{i}."
-        ranking_msg += f"{medal} {row[0]} - Elo: {row[1]} | 🟢 {row[2]} / 🔴 {row[3]}\n"
-    return ranking_msg if rows else "Nenhum jogador no ranking."
-
-# Atualizar ELO e salvar replay
-def update_elo(vencedor, perdedor, pontos, link):
-    print(f"[DEBUG][update_elo] Iniciando atualização: vencedor={vencedor}, perdedor={perdedor}, pontos={pontos}, link={link}")
-    try:
-        conn = create_connection()
-        cursor = conn.cursor()
-
-        cursor.execute(
-            "UPDATE ranking SET elo = elo + ?, vitorias = vitorias + 1 WHERE nome = ?", (pontos, vencedor))
-        print(f"[DEBUG][update_elo] Atualizado vencedor: {vencedor} +{pontos} elo, +1 vitória")
-        cursor.execute(
-            "UPDATE ranking SET elo = elo - ?, derrotas = derrotas + 1 WHERE nome = ?", (pontos, perdedor))
-        print(f"[DEBUG][update_elo] Atualizado perdedor: {perdedor} -{pontos} elo, +1 derrota")
-        cursor.execute("INSERT OR IGNORE INTO replays (url) VALUES (?)", (link,))
-        print(f"[DEBUG][update_elo] Replay registrado (ou ignorado se já existia): {link}")
-
-        cursor.execute("SELECT elo FROM ranking WHERE nome = ?", (vencedor,))
-        elo_vencedor = cursor.fetchone()[0]
-        cursor.execute("SELECT elo FROM ranking WHERE nome = ?", (perdedor,))
-        elo_perdedor = cursor.fetchone()[0]
-        print(f"[DEBUG][update_elo] ELOs após atualização: vencedor={elo_vencedor}, perdedor={elo_perdedor}")
-
-        conn.commit()
-        print(f"[DEBUG][update_elo] Commit realizado com sucesso.")
-        conn.close()
-        print(f"[DEBUG][update_elo] Conexão fechada.")
-        return elo_vencedor, elo_perdedor
-    except Exception as e:
-        print(f"[ERRO][update_elo] Falha ao atualizar ELO/replay: {e}")
-        if 'conn' in locals():
-            conn.rollback()
-            conn.close()
-        raise
-
-# Calcular pontos com base no placar
 
 
 # Função calcular_pontos removida (usar import de ranking_db)
 
-# Handlers
-async def addplayer(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id not in ADMINS:
-        return
-    if len(context.args) != 1:
-        await update.message.reply_text("Uso: /addplayer <nome>")
-        return
-    nome = context.args[0]
-    add_player(nome)
-    # Vincular ID ao nome do ranking
-    import json, os
-    usuarios_path = USERS_JSON_PATH
-    try:
-        with open(usuarios_path, "r", encoding="utf-8") as f:
-            usuarios_map = json.load(f)
-    except Exception:
-        usuarios_map = {}
-    usuarios_map[str(update.effective_user.id)] = nome
-    with open(usuarios_path, "w", encoding="utf-8") as f:
-        json.dump(usuarios_map, f, ensure_ascii=False, indent=4)
-    await update.message.reply_text(f"✅ Jogador {nome} adicionado com Elo 1000!")
+import json
 
-
-async def dellplayer(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id not in ADMINS:
-        return
-    if len(context.args) != 1:
-        await update.message.reply_text("Uso: /dellplayer <nome>")
-        return
-    nome = context.args[0]
-    remove_player(nome)
-    await update.message.reply_text(f"✅ Jogador {nome} foi removido do ranking!")
-
-
-async def showranking(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(get_ranking())
-
-async def resetelo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id not in ADMINS:
-        return
-    if len(context.args) != 1:
-        await update.message.reply_text("Uso: /resetelo <nome>")
-        return
-    nome = context.args[0]
-    conn = create_connection()
-    cursor = conn.cursor()
-    cursor.execute(
-        "UPDATE ranking SET elo = 1000, vitorias = 0, derrotas = 0 WHERE nome = ?", (nome,))
-    conn.commit()
-    conn.close()
-    await update.message.reply_text(f"🔄 Elo de {nome} foi resetado para 1000!")
-
-
-async def reseteloall(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id not in ADMINS:
-        return
-    conn = create_connection()
-    cursor = conn.cursor()
-    cursor.execute("UPDATE ranking SET elo = 1000, vitorias = 0, derrotas = 0")
-    conn.commit()
-    conn.close()
-    await update.message.reply_text("🔄 Todos os jogadores tiveram seus Elos resetados para 1000!")
-
-
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    print("[DEBUG] Handler chamado!")
-    texto = update.message.text
-    print("[DEBUG] Texto recebido:", texto)
-    if not texto.startswith("#ranking"):
-        print("[DEBUG] Ignorado: não começa com #ranking")
-        return
-
-    partes = texto.splitlines()
-    print("[DEBUG] Partes:", partes)
-    if len(partes) < 3:
-        await update.message.reply_text("⚠️ Formato inválido.\nUse:\n#ranking\nJogador1 X x Y Jogador2\nlink")
-        print("[DEBUG] Menos de 3 linhas")
-        return
-
-    resultado = partes[1]
-    link = partes[2].strip()
-    print(f"[DEBUG] Resultado: {resultado}")
-    print(f"[DEBUG] Link: {link}")
-
-    if not re.match(r"https://replay\.pokemonshowdown\.com/", link):
-        await update.message.reply_text("❌ Batalha ignorada: link do replay inválido ou ausente.")
-        print("[DEBUG] Link inválido")
-        return
-
-    conn = create_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT 1 FROM replays WHERE url = ?", (link,))
-    if cursor.fetchone():
-        await update.message.reply_text("⚠️ Esta batalha já foi registrada anteriormente.")
-        print("[DEBUG] Replay já registrado")
-        return
-
-    # Usando o regex do tel_base.py para nomes sem espaços
-    match = re.match(r"(\w+) (\d+) x (\d+) (\w+)", resultado)
-    print("[DEBUG] Match do regex:", match.groups() if match else "NÃO CASOU")
-    if not match:
-        await update.message.reply_text("⚠️ Formato inválido.\nUse:\n#ranking\nJogador1 X x Y Jogador2\nlink")
-        print("[DEBUG] Regex não casou")
-        return
-
-    jogador1, x, y, jogador2 = match.groups()
-    print(f"[DEBUG] jogador1: {jogador1}, x: {x}, y: {y}, jogador2: {jogador2}")
-    x, y = int(x), int(y)
-
-    vencedor = jogador1 if x > y else jogador2
-    perdedor = jogador2 if vencedor == jogador1 else jogador1
-    pontos = calcular_pontos(max(x, y), min(x, y))
-    print(f"[DEBUG] vencedor: {vencedor}, perdedor: {perdedor}, pontos: {pontos}")
-
-    add_player(jogador1)
-    add_player(jogador2)
-
-    elo_vencedor, elo_perdedor = update_elo(vencedor, perdedor, pontos, link)
-    print(f"[DEBUG] elo_vencedor: {elo_vencedor}, elo_perdedor: {elo_perdedor}")
-
-    msg = (
-        f"🔥 {vencedor} venceu a batalha!\n\n"
-        f"📉 {perdedor}: {elo_perdedor + pontos} → {elo_perdedor} (-{pontos} por derrota)\n\n"
-        f"📈 {vencedor}: {elo_vencedor - pontos} → {elo_vencedor} (+{pontos} por vitória)"
-    )
-    await update.message.reply_text(msg)
-    print("[DEBUG] Mensagem enviada para o usuário")
-
-# Main
-
-
-from dotenv import load_dotenv
-
-def main():
-    load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '.env'))
-    TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
-    create_table()
-    app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
-
-    app.add_handler(CommandHandler("addplayer", addplayer))
-    app.add_handler(CommandHandler("dellplayer", dellplayer))
-    app.add_handler(CommandHandler("showranking", showranking))
-    app.add_handler(CommandHandler("resetelo", resetelo))
-    app.add_handler(CommandHandler("reseteloall", reseteloall))
-    app.add_handler(MessageHandler(
-        filters.TEXT & ~filters.COMMAND, bonus_and_handle_message))
-
-    try:
-        app.run_polling()
-    except KeyboardInterrupt:
-        print("\nBot finalizado com sucesso. Até logo!")
-        try:
-            loop = asyncio.get_event_loop()
-            if not loop.is_closed():
-                loop.close()
-        except Exception:
-            pass
-
-
-if __name__ == '__main__':
-    main()
-
-    app.add_handler(CommandHandler("showranking", showranking))
-    app.add_handler(CommandHandler("resetelo", resetelo))
-    app.add_handler(CommandHandler("reseteloall", reseteloall))
-    app.add_handler(CommandHandler("ia", ia_command))
-    app.add_handler(MessageHandler(
-        filters.TEXT & ~filters.COMMAND, bonus_and_handle_message))
-
-    try:
-        app.run_polling()
-    except KeyboardInterrupt:
-        print("\nBot finalizado com sucesso. Até logo!")
-        loop = asyncio.get_event_loop()
-        if not loop.is_closed():
-            loop.close()
-    except Exception:
-        pass
-
-
-if __name__ == '__main__':
-    main()
