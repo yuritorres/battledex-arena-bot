@@ -76,8 +76,24 @@ os.makedirs(STORAGE_DIR, exist_ok=True)
 
 load_dotenv(dotenv_path=os.path.join(BASE_DIR, '.env'))
 adm_env = os.getenv("ADMINS", "")
-# Permite valor único ou lista separada por vírgula; ignora entradas vazias
-ADMINS = [int(x.strip()) for x in adm_env.split(",") if x.strip()]
+
+def _parse_admin_ids(raw):
+    ids = []
+    for entry in raw.split(","):
+        cleaned = entry.strip()
+        if not cleaned:
+            continue
+        if not cleaned.lstrip("-").isdigit():
+            logger.warning("Ignorando entrada ADMINS inválida: %s", cleaned)
+            continue
+        try:
+            ids.append(int(cleaned))
+        except ValueError:
+            logger.warning("Falha ao converter ADMINS: %s", cleaned)
+    return ids
+
+# Permite valor único ou lista separada por vírgula; ignora entradas vazias ou inválidas
+ADMINS = _parse_admin_ids(adm_env)
 
 from handlers.handlers_ranking import addplayer, dellplayer, showranking, resetelo, reseteloall
 from ranking_db import calcular_pontos, add_player, update_elo, create_table
