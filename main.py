@@ -96,8 +96,8 @@ def _parse_admin_ids(raw):
 ADMINS = _parse_admin_ids(adm_env)
 
 from handlers.handlers_ranking import addplayer, dellplayer, showranking, resetelo, reseteloall
-from ranking_db import calcular_pontos, add_player, update_elo, create_table
-from tournaments_db import create_tables as create_tournaments_tables
+from repositories.ranking_db import calcular_pontos, add_player, update_elo, create_table
+from repositories.tournaments_db import create_tables as create_tournaments_tables
 from bonus.premios_command_handler import premio_command
 
 from handlers.handlers_ranking_message import handle_message

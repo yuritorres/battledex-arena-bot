@@ -1,4 +1,4 @@
-from ranking_db import calcular_pontos, add_player, update_elo
+from repositories.ranking_db import calcular_pontos, add_player, update_elo
 from financeiro.coins_db import add_coins
 import os
 import json
@@ -32,7 +32,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("❌ Batalha ignorada: link do replay inválido ou ausente.")
         return
 
-    from ranking_db import create_connection
+    from repositories.ranking_db import create_connection
     conn = create_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT 1 FROM replays WHERE url = ?", (link,))

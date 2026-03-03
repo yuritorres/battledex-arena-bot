@@ -3,7 +3,7 @@ from typing import Tuple
 from telegram import Update
 from telegram.ext import ContextTypes
 
-from tournaments_db import (
+from repositories.tournaments_db import (
     create_tournament,
     set_status,
     list_tournaments,

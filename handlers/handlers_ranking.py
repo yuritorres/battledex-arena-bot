@@ -1,6 +1,6 @@
 from telegram import Update
 from telegram.ext import ContextTypes
-from ranking_db import add_player, remove_player, get_ranking, update_elo, calcular_pontos
+from repositories.ranking_db import add_player, remove_player, get_ranking, update_elo, calcular_pontos
 from config import ADMINS
 
 async def addplayer(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -36,7 +36,7 @@ async def resetelo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Uso: /resetelo <nome>")
         return
     nome = context.args[0]
-    from ranking_db import create_connection
+    from repositories.ranking_db import create_connection
     conn = create_connection()
     cursor = conn.cursor()
     cursor.execute(
@@ -48,7 +48,7 @@ async def resetelo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def reseteloall(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id not in ADMINS:
         return
-    from ranking_db import create_connection
+    from repositories.ranking_db import create_connection
     conn = create_connection()
     cursor = conn.cursor()
     cursor.execute("UPDATE ranking SET elo = 1000, vitorias = 0, derrotas = 0")

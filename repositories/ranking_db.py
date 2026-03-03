@@ -1,7 +1,7 @@
 import os
 import sqlite3
 
-STORAGE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "storage"))
+STORAGE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "storage"))
 DB_PATH = os.path.join(STORAGE_DIR, "rankingbf.db")
 
 def create_connection():

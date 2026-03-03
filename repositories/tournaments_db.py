@@ -1,9 +1,9 @@
 import os
 import sqlite3
 from typing import List, Tuple, Optional
-from ranking_db import calcular_pontos
+from repositories.ranking_db import calcular_pontos
 
-STORAGE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "storage"))
+STORAGE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "storage"))
 DB_PATH = os.path.join(STORAGE_DIR, "tournaments.db")
 
 
