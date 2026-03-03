@@ -75,7 +75,9 @@ CAMP_CMD_ADDPLAYER = os.getenv("CAMP_CMD_ADDPLAYER", "/camp_addplayer")
 os.makedirs(STORAGE_DIR, exist_ok=True)
 
 load_dotenv(dotenv_path=os.path.join(BASE_DIR, '.env'))
-ADMINS = [int(x.strip()) for x in os.getenv("ADMINS", "").split(",")]
+adm_env = os.getenv("ADMINS", "")
+# Permite valor único ou lista separada por vírgula; ignora entradas vazias
+ADMINS = [int(x.strip()) for x in adm_env.split(",") if x.strip()]
 
 from handlers.handlers_ranking import addplayer, dellplayer, showranking, resetelo, reseteloall
 from ranking_db import calcular_pontos, add_player, update_elo, create_table
