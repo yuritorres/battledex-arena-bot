@@ -281,7 +281,7 @@ def register_quiz_handlers(app, storage_dir: str, quiz_group_id: Optional[int], 
     app.add_handler(CommandHandler("quiztest", quiz_test_command))
 
     # Agenda quizzes diários e um quiz inicial
-    app.job_queue.run_once(lambda ctx: asyncio.create_task(send_quiz(ctx.bot)), when=0, name="startup_quiz")
+    app.job_queue.run_once(lambda ctx: asyncio.create_task(send_quiz(ctx.bot)), when=5, name="startup_quiz")
     schedule_daily_quizzes()
 
     logger.info("Quiz habilitado e integrado (grupo=%s, tópico=%s)", cfg.quiz_group_id, cfg.quiz_topic_id)
