@@ -133,6 +133,9 @@ def register_message_handlers(app):
 - [ ] **Importação de replays Showdown** (colou o link → bot puxa metadados e atualiza ranking interno)
 - [ ] **Modo treino PvE alinhado às partidas Showdown** — IA simples com movesets oficiais e regras usadas no replay [Gen4 Ubers](https://replay.pokemonshowdown.com/gen4ubers-2373374930) para permitir treinos fora dos torneios BattleDex
 - [ ] **Logs de batalha no formato Showdown** enviados no privado após cada partida, incluindo weather/status/movimentos como no replay, para revisões rápidas e consistentes com o fluxo da plataforma
+- [ ] **Sistema de notificações push via Telegram** para alertas de torneios e atualizações de ranking
+- [ ] **Auto-moderation inteligente** para grupos de torneio, detectando spam e violações de regras
+- [ ] **Análise automática de replays** para identificar erros comuns e sugerir melhorias pós-partida
 
 ### **Medium Term (1-2 meses)**
 - [ ] **API REST** para integração externa
@@ -147,6 +150,9 @@ def register_message_handlers(app):
 - [ ] **Suporte a múltiplos Pokémon por partida** (times 3v3/6v6 como no replay, com alternância em turnos e persistência de status)
 - [ ] **Sistema de itens e habilidades em batalhas** (berries, choice items, habilidades passivas que afetam dano e status, seguindo o modelo do link)
 - [ ] **Batalhas simultâneas com isolamento de estado** para permitir múltiplas partidas Showdown-like sem bloquear o bot
+- [ ] **Modo espectador para torneios ao vivo** para acompanhar partidas em tempo real
+- [ ] **Matchmaking baseado em taxa de vitória** para equilibrar PvP
+- [ ] **Eventos sazonais com recompensas especiais** (temas, itens exclusivos)
 
 ### **Long Term (3+ meses)**
 - [ ] **Machine Learning** para balanceamento de times
@@ -162,6 +168,9 @@ def register_message_handlers(app):
 - [ ] **Sistema de efeitos secundários e condições climáticas** (status, buffs/debuffs, weather control) reproduzindo o comportamento observado no replay
 - [ ] **Análises pós-jogo com recomendações de jogadas** usando os replays BattleDex/Showdown para sugerir linhas alternativas em partidas reais
 - [ ] **Hub social in-bot orientado a partidas** para matchmaking rápido, organização de clãs e temporadas baseadas em histórico de confrontos
+- [ ] **Integração com foruns externos** para discussões de estratégias
+- [ ] **Sistema de conquistas avançadas** com badges visuais
+- [ ] **Análise preditiva de partidas** usando dados históricos para dicas
 
 ---
 
