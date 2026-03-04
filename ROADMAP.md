@@ -137,6 +137,13 @@ def register_message_handlers(app):
 - [ ] **Auto-moderation inteligente** para grupos de torneio, detectando spam e violações de regras
 - [ ] **Análise automática de replays** para identificar erros comuns e sugerir melhorias pós-partida
 
+#### ✨ Ideias trazidas do [showdown-battlebot](https://github.com/Agetian/showdown-battlebot)
+- [ ] **Plug-in de bots de batalha**: expor uma interface BattleBot com `find_best_move`, permitindo selecionar estratégias via `BATTLE_BOT` (ex.: `safest`, `most_damage`). Cada bot passa a ser um módulo independente escolhido por variável de ambiente, o que habilita alternar lógica de decisão sem alterar o core do BattleDex.
+- [ ] **Expectiminimax "Safest" para IA**: reaproveitar a busca de dois turnos com média ponderada de resultados para nosso modo treino PvE. A árvore combina todas as transições possíveis e calcula o movimento com menor perda esperada, reproduzindo o comportamento determinístico usado no projeto referência.
+- [ ] **Suporte a datasets de times**: aceitar arquivos JSON em `storage/team_datasets/` para melhorar a leitura de sets adversários e alimentar o modo treino. Na prática, carregamos composições/itens conhecidos antes das batalhas e usamos essas informações durante o cálculo de melhores respostas.
+- [ ] **Integração Nash Equilibrium (Docker)**: investigar uso do Gambit para cálculos probabilísticos quando estivermos executando via Docker. O bot monta a matriz de payoff com as opções conhecidas, usa o solver do Gambit e sorteia uma jogada seguindo a distribuição ótima encontrada.
+- [ ] **Configuração avançada por env file**: mapear variáveis como `WEBSOCKET_URI`, `BOT_MODE`, `POKEMON_MODE`, `SAVE_REPLAY` para facilitar conexões diretas com Showdown. Assim replicamos o fluxo do showdown-battlebot, mantendo um `.env` rico para definir credenciais, modo de desafio, time escolhido e logging.
+
 ### **Medium Term (1-2 meses)**
 - [ ] **API REST** para integração externa
 - [ ] **Sistema de badges/conquistas**
