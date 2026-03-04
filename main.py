@@ -17,6 +17,7 @@ from services.backup_service import (
     list_available_backups,
     restore_backup_archive,
 )
+from services.youtube_notifier import register_youtube_notifier, send_latest_video_now
 
 logger = setup_logger()
 
@@ -414,6 +415,33 @@ async def ia_command(update, context):
     resposta = ask_gemini(prompt)
     await update.message.reply_text(resposta)
 
+
+async def youtube_last_command(update, context):
+    user_id = update.effective_user.id if update.effective_user else None
+    if user_id not in ADMINS:
+        await update.message.reply_text("⛔ Você não tem permissão para usar este comando.")
+        return
+
+    await update.message.reply_text("Buscando o último vídeo do canal configurado...")
+    try:
+        entry = await send_latest_video_now(
+            context.bot,
+            STORAGE_DIR,
+            fallback_chat_id=BROADCAST_CHAT_ID,
+            fallback_topic_id=BROADCAST_TOPIC_ID,
+        )
+    except Exception as exc:
+        logger.exception("Falha ao enviar último vídeo do YouTube")
+        await update.message.reply_text(f"❌ Não foi possível enviar o último vídeo: {exc}")
+        return
+
+    titulo = entry.get("title") or "Vídeo"
+    link = entry.get("link") or "(link indisponível)"
+    await update.message.reply_text(
+        f"✅ Vídeo '{titulo}' enviado para o canal configurado.\n{link}",
+        disable_web_page_preview=False,
+    )
+
 # Handler para consultar saldo de battlecoins
 async def saldo_command(update, context):
     import json, os
@@ -589,6 +617,7 @@ def main():
     app.add_handler(CommandHandler("broadcast", broadcast_command))
     app.add_handler(CommandHandler("backup", backup_command))
     app.add_handler(CommandHandler("restore", restore_command))
+    app.add_handler(CommandHandler("youtube_last", youtube_last_command))
     app.add_handler(CommandHandler("start", start_command))
     app.add_handler(CommandHandler("ping", ping_command))
     app.add_handler(CommandHandler("transferir", transferir_command))
@@ -601,6 +630,13 @@ def main():
     app.add_handler(CommandHandler("pokedex", pokedex_command))
     # Quiz integrado (usa OPENAI_API_KEY e CHAT_ID_BF_ADM_QUIZ ou QUIZ_GROUP_ID)
     register_quiz_handlers(app, STORAGE_DIR, QUIZ_GROUP_ID, QUIZ_TOPIC_ID)
+    # Monitoramento automático de novos vídeos do YouTube (feed)
+    register_youtube_notifier(
+        app,
+        STORAGE_DIR,
+        fallback_chat_id=BROADCAST_CHAT_ID,
+        fallback_topic_id=BROADCAST_TOPIC_ID,
+    )
     # Handler pokedex foi movido para pokedex_command_handler.py
     app.add_handler(MessageHandler(
         filters.TEXT & ~filters.COMMAND, bonus_and_handle_message))

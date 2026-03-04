@@ -6,6 +6,7 @@ Este projeto contém um bot para Telegram voltado para a comunidade de batalhas 
 - Ranking de jogadores (adicionar, remover, mostrar ranking, resetar ELO)
 - Comando `/ia <mensagem>`: responde usando a IA Gemini
 - Comandos `/backup` e `/restore` exclusivos para administradores, com envio privado do arquivo compactado
+- **Notificações automáticas de novos vídeos do YouTube** no grupo configurado assim que o feed do canal for atualizado
 - Banco de dados SQLite local
 - Configuração via arquivo `.env`
 - Pronto para rodar em Docker
@@ -33,6 +34,14 @@ CHAT_ID_BF_ADM=-123456789
 CHAT_ID_BF_ADM_QUIZ=-123456789
 LOJA_GROUP_ID=-123456789
 LOJA_TOPIC_ID=123
+BROADCAST_CHAT_ID=-123456789
+BROADCAST_TOPIC_ID=456
+
+# Notificações de YouTube (opcional)
+YOUTUBE_CHANNEL_ID=UCxxxx
+YOUTUBE_NOTIFY_CHAT_ID=-1001234567890  # usa BROADCAST_CHAT_ID se ausente
+YOUTUBE_NOTIFY_TOPIC_ID=12345          # opcional
+YOUTUBE_POLL_INTERVAL_SECONDS=300      # intervalo mínimo 60s
 
 # Outros ajustes
 BATTLE_COINS_REWARD=10
@@ -83,11 +92,23 @@ python main.py
 - `/penalizar <Usuário> <quantidade>` — Remove moedas de um participante (admin)
 - `/backup` — Gera um pacote ZIP com todo o conteúdo da pasta `storage/` e envia no privado do admin
 - `/restore <arquivo|latest>` — Restaura o conteúdo de `storage/` a partir de um backup disponível
+- (automático) Monitoramento do feed do YouTube configurado e publicação de cada novo vídeo
 
-#### Backup e Restore
-- Os dados persistentes ficam em `storage/` (bancos SQLite, JSONs, cache da Pokédex, etc.).
-- O comando `/backup` gera um arquivo `battledex-backup-AAAAMMDD-HHMMSS.zip` na pasta `storage/backups/` e envia o arquivo diretamente, via mensagem privada, ao administrador que disparou o comando.
-- O comando `/restore` lista os backups disponíveis ou restaura um arquivo específico (ou `latest`). Após restaurar, recomenda-se reiniciar o bot para garantir que as alterações sejam carregadas.
+### 5.1 Notificações automáticas do YouTube
+
+Para receber os vídeos mais recentes de um canal assim que forem publicados:
+
+1. Configure no `.env` (ou `.env.example`) os campos:
+   - `YOUTUBE_CHANNEL_ID` — ex.: `UCaGmdJSSiR7fkh2A-c6emsA` para o canal @g1globo.
+   - `YOUTUBE_NOTIFY_CHAT_ID` — chat/grupo destino (usa `BROADCAST_CHAT_ID` se vazio).
+   - `YOUTUBE_NOTIFY_TOPIC_ID` — opcional, tópico específico do chat.
+   - `YOUTUBE_POLL_INTERVAL_SECONDS` — intervalo para verificar o feed (mínimo 60s; padrão 300s).
+2. Reinicie o bot: o `register_youtube_notifier` agenda um job periódico no `job_queue` que busca o feed Atom do canal e posta cada vídeo novo no chat configurado, registrando o último vídeo em `storage/youtube_state.json` (@services/youtube_notifier.py#129-205).
+3. Se quiser disparar manualmente, use `/youtube_last` (admin). O comando busca o vídeo mais recente e o envia imediatamente, útil quando se quer republicar em instantes ou testar a configuração (@main.py#419-443,610-620).
+
+Erros comuns:
+- Canal não configurado (`YOUTUBE_CHANNEL_ID` vazio) — o módulo ignora e loga aviso.
+- Chat alvo não definido (`YOUTUBE_NOTIFY_CHAT_ID` e `BROADCAST_CHAT_ID` ausentes) — impede o anúncio.
 
 ### 6. Usando Docker
 
@@ -100,6 +121,10 @@ Ou com docker-compose (persistindo a pasta `storage/`):
 
 ```sh
 docker compose up -d --build
+```
+
+```sh
+docker compose up
 ```
 
 ##### Rodando via WSL/Ubuntu
