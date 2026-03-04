@@ -3,44 +3,19 @@ import asyncio
 import os
 import re
 import json
+from dotenv import load_dotenv
+
 from services.replay_analyzer import analyze_replay, format_player_stats
-import pytz
-from datetime import datetime
+from utils.logger import setup_logger
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 from pokedex.pokedex_command_handler import pokedex_command
 from services.ia_bot import ask_gemini
 from quiz.quiz_service import register_quiz_handlers
 
-# Configuração do log com timezone de Brasília
-class BrasiliaFormatter(logging.Formatter):
-    def converter(self, timestamp):
-        dt = datetime.fromtimestamp(timestamp)
-        brasilia_tz = pytz.timezone('America/Sao_Paulo')
-        return dt.replace(tzinfo=pytz.utc).astimezone(brasilia_tz)
-        
-    def formatTime(self, record, datefmt=None):
-        dt = self.converter(record.created)
-        if datefmt:
-            s = dt.strftime(datefmt)
-        else:
-            s = dt.strftime('%Y-%m-%d %H:%M:%S')
-        return s
-
-formatter = BrasiliaFormatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler = logging.StreamHandler()
-handler.setFormatter(formatter)
-
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-logger.addHandler(handler)
-# Ocultar logs de HTTP requests de httpx e urllib3
-logging.getLogger("httpx").setLevel(logging.WARNING)
-logging.getLogger("urllib3").setLevel(logging.WARNING)
+logger = setup_logger()
 
 # IDs de administradores
-import os
-from dotenv import load_dotenv
 
 BASE_DIR = os.path.dirname(__file__)
 STORAGE_DIR = os.path.join(BASE_DIR, "storage")
@@ -553,42 +528,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-import os
-import re
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
-
-# Configuração do log com timezone de Brasília
-class BrasiliaFormatter(logging.Formatter):
-    def converter(self, timestamp):
-        dt = datetime.fromtimestamp(timestamp)
-        brasilia_tz = pytz.timezone('America/Sao_Paulo')
-        return dt.replace(tzinfo=pytz.utc).astimezone(brasilia_tz)
-        
-    def formatTime(self, record, datefmt=None):
-        dt = self.converter(record.created)
-        if datefmt:
-            s = dt.strftime(datefmt)
-        else:
-            s = dt.strftime('%Y-%m-%d %H:%M:%S')
-        return s
-
-formatter = BrasiliaFormatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler = logging.StreamHandler()
-handler.setFormatter(formatter)
-
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-logger.addHandler(handler)
-
-from dotenv import load_dotenv
-
-from config import ADMINS
-
-
-
-# Função calcular_pontos removida (usar import de ranking_db)
-
-import json
 
