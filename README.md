@@ -94,6 +94,12 @@ python main.py
 - `/restore <arquivo|latest>` — Restaura o conteúdo de `storage/` a partir de um backup disponível
 - (automático) Monitoramento do feed do YouTube configurado e publicação de cada novo vídeo
 
+#### Backup e Restore
+- Os dados persistentes ficam em `storage/` (bancos SQLite, JSONs, cache da Pokédex, etc.).
+- O comando `/backup` gera um arquivo `battledex-backup-AAAAMMDD-HHMMSS.zip` na pasta `storage/backups/` e envia o arquivo diretamente, via mensagem privada, ao administrador que disparou o comando.
+- O comando `/restore` lista os backups disponíveis ou restaura um arquivo específico (ou `latest`). Após restaurar, recomenda-se reiniciar o bot para garantir que as alterações sejam carregadas.
+
+
 ### 5.1 Notificações automáticas do YouTube
 
 Para receber os vídeos mais recentes de um canal assim que forem publicados:
