@@ -12,6 +12,11 @@ from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, Con
 from pokedex.pokedex_command_handler import pokedex_command
 from services.ia_bot import ask_gemini
 from quiz.quiz_service import register_quiz_handlers
+from services.backup_service import (
+    create_backup_archive,
+    list_available_backups,
+    restore_backup_archive,
+)
 
 logger = setup_logger()
 
@@ -19,6 +24,7 @@ logger = setup_logger()
 
 BASE_DIR = os.path.dirname(__file__)
 STORAGE_DIR = os.path.join(BASE_DIR, "storage")
+BACKUPS_DIR = os.path.join(STORAGE_DIR, "backups")
 USERS_JSON_PATH = os.path.join(STORAGE_DIR, "usuarios.json")
 QUESTIONS_DB_PATH = os.path.join(STORAGE_DIR, "scores.db")
 RANKING_DB_PATH = os.path.join(STORAGE_DIR, "rankingbf.db")
@@ -48,6 +54,7 @@ CAMP_CMD_LISTA = os.getenv("CAMP_CMD_LISTA", "/camp_lista")
 CAMP_CMD_ADDPLAYER = os.getenv("CAMP_CMD_ADDPLAYER", "/camp_addplayer")
 
 os.makedirs(STORAGE_DIR, exist_ok=True)
+os.makedirs(BACKUPS_DIR, exist_ok=True)
 
 load_dotenv(dotenv_path=os.path.join(BASE_DIR, '.env'))
 adm_env = os.getenv("ADMINS", "")
@@ -157,6 +164,8 @@ async def comandos_command(update, context):
         "/replay &lt;link&gt; — Analisa replay do Showdown\n"
         "/replaystats &lt;nome&gt; [tier] — Estatísticas agregadas de replays\n"
         "/broadcast &lt;mensagem&gt; — Envia anúncio a todos que já interagiram (admin)\n"
+        "/backup — Gera backup imediato dos bancos (admin)\n"
+        "/restore &lt;arquivo|latest&gt; — Restaura dados a partir de um backup (admin)\n"
         "/info — Lista todos os usuários registrados\n"
         "/ia &lt;mensagem&gt; — Responde usando Gemini IA (restrito aos admins)\n"
         "/penalizar &lt;Usuário&gt; &lt;quantidade&gt; — Remove battlecoins de um participante (admin)\n"
@@ -201,6 +210,79 @@ async def broadcast_command(update, context):
                 await update.message.reply_text(f"Falha ao publicar o anúncio (fallback sem tópico): {e2}")
                 return
         await update.message.reply_text(f"Falha ao publicar o anúncio: {e}")
+
+
+async def backup_command(update, context):
+    user_id = update.effective_user.id if update.effective_user else None
+    if user_id not in ADMINS:
+        await update.message.reply_text("⛔ Você não tem permissão para usar este comando.")
+        return
+
+    await update.message.reply_text("Gerando backup, aguarde...")
+    try:
+        archive_path, filename = create_backup_archive(STORAGE_DIR, BACKUPS_DIR)
+    except Exception as exc:
+        logger.exception("Falha ao criar backup")
+        await update.message.reply_text(f"Não foi possível gerar o backup: {exc}")
+        return
+
+    try:
+        with open(archive_path, "rb") as backup_file:
+            await context.bot.send_document(
+                chat_id=update.effective_chat.id if update.effective_chat else user_id,
+                document=backup_file,
+                filename=filename,
+                caption="Backup criado e enviado com sucesso.",
+            )
+    except Exception as exc:
+        logger.warning("Backup criado mas falhou envio: %s", exc)
+        await update.message.reply_text(
+            "Backup criado em {path}, mas não foi possível enviar automaticamente: {error}".format(
+                path=archive_path, error=exc
+            )
+        )
+
+
+async def restore_command(update, context):
+    user_id = update.effective_user.id if update.effective_user else None
+    if user_id not in ADMINS:
+        await update.message.reply_text("⛔ Você não tem permissão para usar este comando.")
+        return
+
+    if not context.args:
+        backups = list_available_backups(BACKUPS_DIR)
+        if not backups:
+            await update.message.reply_text("Nenhum backup disponível.")
+            return
+        msg = "Backups disponíveis:\n" + "\n".join(backups)
+        msg += "\n\nUse /restore &lt;nome_do_arquivo|latest&gt; para restaurar."
+        await update.message.reply_text(msg)
+        return
+
+    target = context.args[0].strip()
+    backups = list_available_backups(BACKUPS_DIR)
+    if target.lower() == "latest":
+        if not backups:
+            await update.message.reply_text("Nenhum backup disponível para restaurar.")
+            return
+        target = backups[0]
+    elif target not in backups:
+        await update.message.reply_text(
+            "Backup não encontrado. Use /restore para listar opções ou informe 'latest'."
+        )
+        return
+
+    await update.message.reply_text(f"Restaurando backup {target}. Isto pode levar alguns segundos...")
+    try:
+        restore_backup_archive(STORAGE_DIR, BACKUPS_DIR, target)
+    except Exception as exc:
+        logger.exception("Falha ao restaurar backup")
+        await update.message.reply_text(f"Erro ao restaurar backup: {exc}")
+        return
+
+    await update.message.reply_text(
+        f"Backup '{target}' restaurado com sucesso. Reinicie o bot para garantir que as alterações estejam ativas."
+    )
 
 
 # /replay command: fetch and analyze Showdown replay
@@ -498,6 +580,8 @@ def main():
     app.add_handler(CommandHandler("replay", replay_command))
     app.add_handler(CommandHandler("replaystats", replaystats_command))
     app.add_handler(CommandHandler("broadcast", broadcast_command))
+    app.add_handler(CommandHandler("backup", backup_command))
+    app.add_handler(CommandHandler("restore", restore_command))
     app.add_handler(CommandHandler("start", start_command))
     app.add_handler(CommandHandler("ping", ping_command))
     app.add_handler(CommandHandler("transferir", transferir_command))
