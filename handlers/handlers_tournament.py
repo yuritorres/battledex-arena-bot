@@ -101,16 +101,50 @@ async def _open_signup_topic(update: Update, context: ContextTypes.DEFAULT_TYPE,
             exc,
         )
 
+    pin_suffix = ""
+    pin_message_text = (
+        f"🏆 <b>{html.escape(nome)}</b> aberto para inscrições! Acesse o tópico dedicado para participar."
+        + (f"\n🔗 {topic_link}" if topic_link else f"\n🧵 Thread ID: {topic.message_thread_id}")
+    )
+    try:
+        notice = await context.bot.send_message(
+            chat_id=target_chat_id,
+            text=pin_message_text,
+            disable_web_page_preview=True,
+            parse_mode="HTML",
+        )
+        try:
+            await context.bot.pin_chat_message(
+                chat_id=target_chat_id,
+                message_id=notice.message_id,
+                disable_notification=True,
+            )
+            pin_suffix = "\n📌 Aviso fixado no tópico principal informando as inscrições."
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "Falha ao fixar aviso principal de inscrições (chat_id=%s): %s",
+                target_chat_id,
+                exc,
+            )
+            pin_suffix = f"\n⚠️ Aviso enviado no tópico principal, mas não foi possível fixá-lo automaticamente ({exc})."
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "Falha ao enviar aviso principal de inscrições (chat_id=%s): %s",
+            target_chat_id,
+            exc,
+        )
+        pin_suffix = "\n⚠️ Não foi possível enviar o aviso de inscrições no tópico principal."
+
     link_suffix = f"\n🔗 {topic_link}" if topic_link else ""
     if current_chat and current_chat.id == target_chat_id:
         return (
             "🧵 Tópico de inscrições criado neste grupo. Use o thread recém-aberto "
-            f"(ID {topic.message_thread_id}) para receber os jogadores.{link_suffix}"
+            f"(ID {topic.message_thread_id}) para receber os jogadores.{link_suffix}{pin_suffix}"
         )
 
     return (
         "🧵 Tópico de inscrições criado no grupo configurado. "
-        f"Thread ID: {topic.message_thread_id}.{link_suffix}"
+        f"Thread ID: {topic.message_thread_id}.{link_suffix}{pin_suffix}"
     )
 
 
