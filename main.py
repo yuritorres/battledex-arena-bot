@@ -218,6 +218,11 @@ async def backup_command(update, context):
         await update.message.reply_text("⛔ Você não tem permissão para usar este comando.")
         return
 
+    target_chat_id = user_id
+    await update.message.reply_text(
+        "Gerando backup e enviarei diretamente para você no privado. Aguarde..."
+    )
+
     await update.message.reply_text("Gerando backup, aguarde...")
     try:
         archive_path, filename = create_backup_archive(STORAGE_DIR, BACKUPS_DIR)
@@ -229,15 +234,17 @@ async def backup_command(update, context):
     try:
         with open(archive_path, "rb") as backup_file:
             await context.bot.send_document(
-                chat_id=update.effective_chat.id if update.effective_chat else user_id,
+                chat_id=target_chat_id,
                 document=backup_file,
                 filename=filename,
-                caption="Backup criado e enviado com sucesso.",
+                caption="Backup criado e enviado no seu privado.",
             )
+        if update.effective_chat and update.effective_chat.id != target_chat_id:
+            await update.message.reply_text("Backup enviado no seu privado.")
     except Exception as exc:
         logger.warning("Backup criado mas falhou envio: %s", exc)
         await update.message.reply_text(
-            "Backup criado em {path}, mas não foi possível enviar automaticamente: {error}".format(
+            "Backup criado em {path}, mas o envio privado falhou: {error}".format(
                 path=archive_path, error=exc
             )
         )
