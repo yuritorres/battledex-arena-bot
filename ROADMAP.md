@@ -127,6 +127,10 @@ def register_message_handlers(app):
 - [ ] **Comandos inline de consulta rápida** (ex.: digitar @BattleDexBot em qualquer chat para mostrar ranking ou saldo)
 - [ ] **Links com parâmetros (`start`/`startgroup`)** para inscrição em torneios e onboarding guiado direto do BotFather
 - [ ] **Atalhos no menu de anexos** para reportar resultados sem sair do grupo (quando o Telegram liberar para o bot)
+- [ ] **Comandos inline de consulta rápida** (ex.: digitar @BattleDexBot em qualquer chat para mostrar ranking ou saldo)
+- [ ] **Links com parâmetros (`start`/`startgroup`)** para inscrição em torneios e onboarding guiado direto do BotFather
+- [ ] **Webhook com Pokémon Showdown** para registrar automaticamente resultados de salas/grupos selecionados
+- [ ] **Importação de replays Showdown** (colou o link → bot puxa metadados e atualiza ranking interno)
 
 ### **Medium Term (1-2 meses)**
 - [ ] **API REST** para integração externa
@@ -136,6 +140,8 @@ def register_message_handlers(app):
 - [ ] **Mini App Telegram** para painel do admin/jogador sem sair do app
 - [ ] **Pagamentos com Telegram Stars** para inscrições premium e cosméticos
 - [ ] **Web Login** para conectar contas BattleDex a serviços externos usando a conta Telegram
+- [ ] **Sincronização de torneios Showdown** (criar/iniciar Auto-DQ diretamente do bot, inspirado nas ferramentas nativas da plataforma)
+- [ ] **Leaderboard unificada** Showdown ↔️ BattleDex (importa ladder/elo externo e aplica bonificações locais)
 
 ### **Long Term (3+ meses)**
 - [ ] **Machine Learning** para balanceamento de times
@@ -145,6 +151,9 @@ def register_message_handlers(app):
 - [ ] **Jogos HTML5 integrados** (mini desafios PVE/PVP que dão moedas)
 - [ ] **Sticker packs e custom emoji temáticos** liberados como recompensas de temporada
 - [ ] **Promoção no Mini App Store / atalhos na home** para ampliar alcance e reengajamento
+- [ ] **Jogos HTML5 integrados** (mini desafios PVE/PVP que dão moedas)
+- [ ] **Sticker packs e custom emoji temáticos** liberados como recompensas de temporada
+- [ ] **Battle bot avançado estilo Showdown** (IA básica para sparring/treino e eventos "bot battle royale")
 
 ---
 
