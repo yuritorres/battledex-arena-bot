@@ -8,3 +8,5 @@ services:
       - ./storage:/app/storage
     restart: unless-stopped
     command: ["python", "main.py"]
+    environment:
+      - PYTHONUNBUFFERED=1
