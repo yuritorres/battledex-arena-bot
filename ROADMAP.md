@@ -124,18 +124,27 @@ def register_message_handlers(app):
 - [ ] **Export/Import** de dados do ranking
 - [ ] **Sistema de notificações** para eventos
 - [x] **Comando de backup/restore** — comando envia o ZIP apenas no privado do admin
+- [ ] **Comandos inline de consulta rápida** (ex.: digitar @BattleDexBot em qualquer chat para mostrar ranking ou saldo)
+- [ ] **Links com parâmetros (`start`/`startgroup`)** para inscrição em torneios e onboarding guiado direto do BotFather
+- [ ] **Atalhos no menu de anexos** para reportar resultados sem sair do grupo (quando o Telegram liberar para o bot)
 
 ### **Medium Term (1-2 meses)**
 - [ ] **API REST** para integração externa
 - [ ] **Sistema de badges/conquistas**
 - [ ] **Torneios automatizados** (swiss, round-robin)
 - [ ] **Integração com Discord**
+- [ ] **Mini App Telegram** para painel do admin/jogador sem sair do app
+- [ ] **Pagamentos com Telegram Stars** para inscrições premium e cosméticos
+- [ ] **Web Login** para conectar contas BattleDex a serviços externos usando a conta Telegram
 
 ### **Long Term (3+ meses)**
 - [ ] **Machine Learning** para balanceamento de times
 - [ ] **Mobile app** companion
 - [ ] **Multi-linguagem** suporte
 - [ ] **Cloud deployment** (AWS/GCP)
+- [ ] **Jogos HTML5 integrados** (mini desafios PVE/PVP que dão moedas)
+- [ ] **Sticker packs e custom emoji temáticos** liberados como recompensas de temporada
+- [ ] **Promoção no Mini App Store / atalhos na home** para ampliar alcance e reengajamento
 
 ---
 
