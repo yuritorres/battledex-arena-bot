@@ -37,3 +37,6 @@ storage/participation_bonus.json
 storage/pokedex_cache.json
 
 external/*
+
+# Banco da aplicação
+banco/banco.md

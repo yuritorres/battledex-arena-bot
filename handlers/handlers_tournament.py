@@ -1,9 +1,11 @@
+import html
+import logging
 import re
 from typing import Tuple
 from telegram import Update
 from telegram.ext import ContextTypes
 
-from tournaments_db import (
+from repositories.tournaments_db import (
     create_tournament,
     set_status,
     list_tournaments,
@@ -11,6 +13,9 @@ from tournaments_db import (
     ranking,
     add_player,
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 def _is_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
@@ -32,6 +37,117 @@ def _parse_result_lines(lines: list) -> Tuple[bool, Tuple[str, str, int, int, st
     return True, (j1.strip(), j2.strip(), int(s1), int(s2), link)
 
 
+async def _open_signup_topic(update: Update, context: ContextTypes.DEFAULT_TYPE, tournament_id: int, nome: str) -> str:
+    bot_data = context.application.bot_data or {}
+    signup_chat_id = bot_data.get("CAMP_SIGNUP_CHAT_ID")
+    target_chat_id = signup_chat_id
+    current_chat = update.effective_chat
+
+    if target_chat_id is None:
+        if current_chat and getattr(current_chat, "is_forum", False):
+            target_chat_id = current_chat.id
+        else:
+            return (
+                "⚠️ Campeonato criado, mas não foi possível abrir automaticamente o tópico de inscrição. "
+                "Configure CAMP_SIGNUP_CHAT_ID no .env ou execute o comando em um supergrupo com tópicos habilitados."
+            )
+
+    topic_name = f"Inscrição {nome}".strip()
+    if len(topic_name) > 128:
+        topic_name = topic_name[:125] + "..."
+
+    try:
+        topic = await context.bot.create_forum_topic(chat_id=target_chat_id, name=topic_name)
+    except Exception as exc:  # noqa: BLE001 - precisa logar erro específico do Telegram
+        logger.warning(
+            "Falha ao criar tópico de inscrição (camp_id=%s chat_id=%s): %s",
+            tournament_id,
+            target_chat_id,
+            exc,
+        )
+        return (
+            "⚠️ Campeonato criado, mas houve erro ao criar o tópico de inscrição. "
+            f"Detalhes: {exc}"
+        )
+
+    topic_link = None
+    try:
+        topic_link = await context.bot.get_forum_topic_link(
+            chat_id=target_chat_id,
+            message_thread_id=topic.message_thread_id,
+        )
+    except Exception as exc:  # noqa: BLE001 - link é opcional
+        logger.warning(
+            "Falha ao recuperar link do tópico (thread_id=%s): %s",
+            topic.message_thread_id,
+            exc,
+        )
+
+    try:
+        await context.bot.send_message(
+            chat_id=target_chat_id,
+            message_thread_id=topic.message_thread_id,
+            text=(
+                f"📣 Inscrições abertas para <b>{html.escape(nome)}</b> (ID {tournament_id}).\n"
+                "Escreva sua inscrição neste tópico para participar."
+                + (f"\n🔗 Link direto: {topic_link}" if topic_link else "")
+            ),
+            parse_mode="HTML",
+        )
+    except Exception as exc:  # noqa: BLE001 - logamos mas seguimos
+        logger.warning(
+            "Falha ao enviar mensagem inicial no tópico (thread_id=%s): %s",
+            topic.message_thread_id,
+            exc,
+        )
+
+    pin_suffix = ""
+    pin_message_text = (
+        f"🏆 <b>{html.escape(nome)}</b> aberto para inscrições! Acesse o tópico dedicado para participar."
+        + (f"\n🔗 {topic_link}" if topic_link else f"\n🧵 Thread ID: {topic.message_thread_id}")
+    )
+    try:
+        notice = await context.bot.send_message(
+            chat_id=target_chat_id,
+            text=pin_message_text,
+            disable_web_page_preview=True,
+            parse_mode="HTML",
+        )
+        try:
+            await context.bot.pin_chat_message(
+                chat_id=target_chat_id,
+                message_id=notice.message_id,
+                disable_notification=True,
+            )
+            pin_suffix = "\n📌 Aviso fixado no tópico principal informando as inscrições."
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "Falha ao fixar aviso principal de inscrições (chat_id=%s): %s",
+                target_chat_id,
+                exc,
+            )
+            pin_suffix = f"\n⚠️ Aviso enviado no tópico principal, mas não foi possível fixá-lo automaticamente ({exc})."
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "Falha ao enviar aviso principal de inscrições (chat_id=%s): %s",
+            target_chat_id,
+            exc,
+        )
+        pin_suffix = "\n⚠️ Não foi possível enviar o aviso de inscrições no tópico principal."
+
+    link_suffix = f"\n🔗 {topic_link}" if topic_link else ""
+    if current_chat and current_chat.id == target_chat_id:
+        return (
+            "🧵 Tópico de inscrições criado neste grupo. Use o thread recém-aberto "
+            f"(ID {topic.message_thread_id}) para receber os jogadores.{link_suffix}{pin_suffix}"
+        )
+
+    return (
+        "🧵 Tópico de inscrições criado no grupo configurado. "
+        f"Thread ID: {topic.message_thread_id}.{link_suffix}{pin_suffix}"
+    )
+
+
 async def cmd_criar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not _is_admin(update, context):
         await update.message.reply_text("❌ Apenas administradores podem criar campeonatos.")
@@ -45,7 +161,11 @@ async def cmd_criar(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ano = int(context.args[-1])
         nome = " ".join(context.args[:-1])
     tid = create_tournament(nome, ano)
-    await update.message.reply_text(f"✅ Campeonato criado (id={tid}). Status: draft.")
+    topic_msg = await _open_signup_topic(update, context, tid, nome)
+    response = f"✅ Campeonato criado (id={tid}). Status: draft."
+    if topic_msg:
+        response += f"\n{topic_msg}"
+    await update.message.reply_text(response)
 
 
 async def cmd_abrir(update: Update, context: ContextTypes.DEFAULT_TYPE):

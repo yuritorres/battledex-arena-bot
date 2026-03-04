@@ -3,47 +3,29 @@ import asyncio
 import os
 import re
 import json
+from dotenv import load_dotenv
+
 from services.replay_analyzer import analyze_replay, format_player_stats
-import pytz
-from datetime import datetime
+from utils.logger import setup_logger
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 from pokedex.pokedex_command_handler import pokedex_command
 from services.ia_bot import ask_gemini
 from quiz.quiz_service import register_quiz_handlers
+from services.backup_service import (
+    create_backup_archive,
+    list_available_backups,
+    restore_backup_archive,
+)
+from services.youtube_notifier import register_youtube_notifier, send_latest_video_now
 
-# Configuração do log com timezone de Brasília
-class BrasiliaFormatter(logging.Formatter):
-    def converter(self, timestamp):
-        dt = datetime.fromtimestamp(timestamp)
-        brasilia_tz = pytz.timezone('America/Sao_Paulo')
-        return dt.replace(tzinfo=pytz.utc).astimezone(brasilia_tz)
-        
-    def formatTime(self, record, datefmt=None):
-        dt = self.converter(record.created)
-        if datefmt:
-            s = dt.strftime(datefmt)
-        else:
-            s = dt.strftime('%Y-%m-%d %H:%M:%S')
-        return s
-
-formatter = BrasiliaFormatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler = logging.StreamHandler()
-handler.setFormatter(formatter)
-
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-logger.addHandler(handler)
-# Ocultar logs de HTTP requests de httpx e urllib3
-logging.getLogger("httpx").setLevel(logging.WARNING)
-logging.getLogger("urllib3").setLevel(logging.WARNING)
+logger = setup_logger()
 
 # IDs de administradores
-import os
-from dotenv import load_dotenv
 
 BASE_DIR = os.path.dirname(__file__)
 STORAGE_DIR = os.path.join(BASE_DIR, "storage")
+BACKUPS_DIR = os.path.join(STORAGE_DIR, "backups")
 USERS_JSON_PATH = os.path.join(STORAGE_DIR, "usuarios.json")
 QUESTIONS_DB_PATH = os.path.join(STORAGE_DIR, "scores.db")
 RANKING_DB_PATH = os.path.join(STORAGE_DIR, "rankingbf.db")
@@ -63,6 +45,13 @@ BROADCAST_CHAT_ID = int(BROADCAST_CHAT_ID_ENV) if BROADCAST_CHAT_ID_ENV and BROA
 BROADCAST_TOPIC_ID_ENV = os.getenv("BROADCAST_TOPIC_ID")
 BROADCAST_TOPIC_ID = int(BROADCAST_TOPIC_ID_ENV) if BROADCAST_TOPIC_ID_ENV and BROADCAST_TOPIC_ID_ENV.lstrip('-').isdigit() else None
 
+CAMP_SIGNUP_CHAT_ID_ENV = os.getenv("CAMP_SIGNUP_CHAT_ID")
+CAMP_SIGNUP_CHAT_ID = (
+    int(CAMP_SIGNUP_CHAT_ID_ENV)
+    if CAMP_SIGNUP_CHAT_ID_ENV and CAMP_SIGNUP_CHAT_ID_ENV.lstrip('-').isdigit()
+    else None
+)
+
 # Comandos de campeonato configuráveis via .env
 CAMP_CMD_CRIAR = os.getenv("CAMP_CMD_CRIAR", "/camp_criar")
 CAMP_CMD_ABRIR = os.getenv("CAMP_CMD_ABRIR", "/camp_abrir")
@@ -73,6 +62,7 @@ CAMP_CMD_LISTA = os.getenv("CAMP_CMD_LISTA", "/camp_lista")
 CAMP_CMD_ADDPLAYER = os.getenv("CAMP_CMD_ADDPLAYER", "/camp_addplayer")
 
 os.makedirs(STORAGE_DIR, exist_ok=True)
+os.makedirs(BACKUPS_DIR, exist_ok=True)
 
 load_dotenv(dotenv_path=os.path.join(BASE_DIR, '.env'))
 adm_env = os.getenv("ADMINS", "")
@@ -96,8 +86,8 @@ def _parse_admin_ids(raw):
 ADMINS = _parse_admin_ids(adm_env)
 
 from handlers.handlers_ranking import addplayer, dellplayer, showranking, resetelo, reseteloall
-from ranking_db import calcular_pontos, add_player, update_elo, create_table
-from tournaments_db import create_tables as create_tournaments_tables
+from repositories.ranking_db import calcular_pontos, add_player, update_elo, create_table
+from repositories.tournaments_db import create_tables as create_tournaments_tables
 from bonus.premios_command_handler import premio_command
 
 from handlers.handlers_ranking_message import handle_message
@@ -182,8 +172,10 @@ async def comandos_command(update, context):
         "/replay &lt;link&gt; — Analisa replay do Showdown\n"
         "/replaystats &lt;nome&gt; [tier] — Estatísticas agregadas de replays\n"
         "/broadcast &lt;mensagem&gt; — Envia anúncio a todos que já interagiram (admin)\n"
+        "/backup — Gera backup imediato dos bancos (admin)\n"
+        "/restore &lt;arquivo|latest&gt; — Restaura dados a partir de um backup (admin)\n"
         "/info — Lista todos os usuários registrados\n"
-        "/ia &lt;mensagem&gt; — Responde usando Gemini IA (restrito ao Torres)\n"
+        "/ia &lt;mensagem&gt; — Responde usando Gemini IA (restrito aos admins)\n"
         "/penalizar &lt;Usuário&gt; &lt;quantidade&gt; — Remove battlecoins de um participante (admin)\n"
         "/comandos — Mostra esta mensagem\n"
         "\n<b>Comandos de ranking também podem ser enviados como mensagem iniciando por #ranking</b>"
@@ -228,6 +220,86 @@ async def broadcast_command(update, context):
         await update.message.reply_text(f"Falha ao publicar o anúncio: {e}")
 
 
+async def backup_command(update, context):
+    user_id = update.effective_user.id if update.effective_user else None
+    if user_id not in ADMINS:
+        await update.message.reply_text("⛔ Você não tem permissão para usar este comando.")
+        return
+
+    target_chat_id = user_id
+    await update.message.reply_text(
+        "Gerando backup e enviarei diretamente para você no privado. Aguarde..."
+    )
+
+    await update.message.reply_text("Gerando backup, aguarde...")
+    try:
+        archive_path, filename = create_backup_archive(STORAGE_DIR, BACKUPS_DIR)
+    except Exception as exc:
+        logger.exception("Falha ao criar backup")
+        await update.message.reply_text(f"Não foi possível gerar o backup: {exc}")
+        return
+
+    try:
+        with open(archive_path, "rb") as backup_file:
+            await context.bot.send_document(
+                chat_id=target_chat_id,
+                document=backup_file,
+                filename=filename,
+                caption="Backup criado e enviado no seu privado.",
+            )
+        if update.effective_chat and update.effective_chat.id != target_chat_id:
+            await update.message.reply_text("Backup enviado no seu privado.")
+    except Exception as exc:
+        logger.warning("Backup criado mas falhou envio: %s", exc)
+        await update.message.reply_text(
+            "Backup criado em {path}, mas o envio privado falhou: {error}".format(
+                path=archive_path, error=exc
+            )
+        )
+
+
+async def restore_command(update, context):
+    user_id = update.effective_user.id if update.effective_user else None
+    if user_id not in ADMINS:
+        await update.message.reply_text("⛔ Você não tem permissão para usar este comando.")
+        return
+
+    if not context.args:
+        backups = list_available_backups(BACKUPS_DIR)
+        if not backups:
+            await update.message.reply_text("Nenhum backup disponível.")
+            return
+        msg = "Backups disponíveis:\n" + "\n".join(backups)
+        msg += "\n\nUse /restore &lt;nome_do_arquivo|latest&gt; para restaurar."
+        await update.message.reply_text(msg)
+        return
+
+    target = context.args[0].strip()
+    backups = list_available_backups(BACKUPS_DIR)
+    if target.lower() == "latest":
+        if not backups:
+            await update.message.reply_text("Nenhum backup disponível para restaurar.")
+            return
+        target = backups[0]
+    elif target not in backups:
+        await update.message.reply_text(
+            "Backup não encontrado. Use /restore para listar opções ou informe 'latest'."
+        )
+        return
+
+    await update.message.reply_text(f"Restaurando backup {target}. Isto pode levar alguns segundos...")
+    try:
+        restore_backup_archive(STORAGE_DIR, BACKUPS_DIR, target)
+    except Exception as exc:
+        logger.exception("Falha ao restaurar backup")
+        await update.message.reply_text(f"Erro ao restaurar backup: {exc}")
+        return
+
+    await update.message.reply_text(
+        f"Backup '{target}' restaurado com sucesso. Reinicie o bot para garantir que as alterações estejam ativas."
+    )
+
+
 # /replay command: fetch and analyze Showdown replay
 async def replay_command(update, context):
     if not context.args:
@@ -261,7 +333,7 @@ async def start_command(update, context):
         "• /saldo — mostra suas battlecoins\n"
         "• /loja — lista itens\n"
         "• /inventario — mostra seu inventário\n"
-        "• /ia &lt;mensagem&gt; — pergunta à IA (restrito)\n"
+        "• /ia &lt;mensagem&gt; — pergunta à IA (restrito a admins)\n"
         "• /ping — teste rápido\n"
         "• /quiztest — envia quiz (admins, se quiz habilitado)\n\n"
         "Dica: mensagens iniciando com #ranking registram resultado (formato Jogador1 X x Y Jogador2)."
@@ -338,8 +410,8 @@ async def transferir_command(update, context):
 
 # Handler para comando de IA
 async def ia_command(update, context):
-    # Limitar o comando apenas ao usuário Torres (ID 7562086063)
-    if update.effective_user.id != 7562086063:
+    # Limitar o comando apenas aos administradores
+    if update.effective_user.id not in ADMINS:
         await update.message.reply_text("⛔ Você não tem permissão para usar este comando.")
         return
     prompt = " ".join(context.args)
@@ -349,6 +421,33 @@ async def ia_command(update, context):
     await update.message.reply_text("Pensando com Gemini IA...")
     resposta = ask_gemini(prompt)
     await update.message.reply_text(resposta)
+
+
+async def youtube_last_command(update, context):
+    user_id = update.effective_user.id if update.effective_user else None
+    if user_id not in ADMINS:
+        await update.message.reply_text("⛔ Você não tem permissão para usar este comando.")
+        return
+
+    await update.message.reply_text("Buscando o último vídeo do canal configurado...")
+    try:
+        entry = await send_latest_video_now(
+            context.bot,
+            STORAGE_DIR,
+            fallback_chat_id=BROADCAST_CHAT_ID,
+            fallback_topic_id=BROADCAST_TOPIC_ID,
+        )
+    except Exception as exc:
+        logger.exception("Falha ao enviar último vídeo do YouTube")
+        await update.message.reply_text(f"❌ Não foi possível enviar o último vídeo: {exc}")
+        return
+
+    titulo = entry.get("title") or "Vídeo"
+    link = entry.get("link") or "(link indisponível)"
+    await update.message.reply_text(
+        f"✅ Vídeo '{titulo}' enviado para o canal configurado.\n{link}",
+        disable_web_page_preview=False,
+    )
 
 # Handler para consultar saldo de battlecoins
 async def saldo_command(update, context):
@@ -523,6 +622,9 @@ def main():
     app.add_handler(CommandHandler("replay", replay_command))
     app.add_handler(CommandHandler("replaystats", replaystats_command))
     app.add_handler(CommandHandler("broadcast", broadcast_command))
+    app.add_handler(CommandHandler("backup", backup_command))
+    app.add_handler(CommandHandler("restore", restore_command))
+    app.add_handler(CommandHandler("youtube_last", youtube_last_command))
     app.add_handler(CommandHandler("start", start_command))
     app.add_handler(CommandHandler("ping", ping_command))
     app.add_handler(CommandHandler("transferir", transferir_command))
@@ -535,6 +637,13 @@ def main():
     app.add_handler(CommandHandler("pokedex", pokedex_command))
     # Quiz integrado (usa OPENAI_API_KEY e CHAT_ID_BF_ADM_QUIZ ou QUIZ_GROUP_ID)
     register_quiz_handlers(app, STORAGE_DIR, QUIZ_GROUP_ID, QUIZ_TOPIC_ID)
+    # Monitoramento automático de novos vídeos do YouTube (feed)
+    register_youtube_notifier(
+        app,
+        STORAGE_DIR,
+        fallback_chat_id=BROADCAST_CHAT_ID,
+        fallback_topic_id=BROADCAST_TOPIC_ID,
+    )
     # Handler pokedex foi movido para pokedex_command_handler.py
     app.add_handler(MessageHandler(
         filters.TEXT & ~filters.COMMAND, bonus_and_handle_message))
@@ -553,42 +662,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-import os
-import re
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
-
-# Configuração do log com timezone de Brasília
-class BrasiliaFormatter(logging.Formatter):
-    def converter(self, timestamp):
-        dt = datetime.fromtimestamp(timestamp)
-        brasilia_tz = pytz.timezone('America/Sao_Paulo')
-        return dt.replace(tzinfo=pytz.utc).astimezone(brasilia_tz)
-        
-    def formatTime(self, record, datefmt=None):
-        dt = self.converter(record.created)
-        if datefmt:
-            s = dt.strftime(datefmt)
-        else:
-            s = dt.strftime('%Y-%m-%d %H:%M:%S')
-        return s
-
-formatter = BrasiliaFormatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler = logging.StreamHandler()
-handler.setFormatter(formatter)
-
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-logger.addHandler(handler)
-
-from dotenv import load_dotenv
-
-from config import ADMINS
-
-
-
-# Função calcular_pontos removida (usar import de ranking_db)
-
-import json
 
