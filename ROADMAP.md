@@ -131,6 +131,8 @@ def register_message_handlers(app):
 - [ ] **Links com parâmetros (`start`/`startgroup`)** para inscrição em torneios e onboarding guiado direto do BotFather
 - [ ] **Webhook com Pokémon Showdown** para registrar automaticamente resultados de salas/grupos selecionados
 - [ ] **Importação de replays Showdown** (colou o link → bot puxa metadados e atualiza ranking interno)
+- [ ] **Modo treino PvE alinhado às partidas Showdown** — IA simples com movesets oficiais e regras usadas no replay [Gen4 Ubers](https://replay.pokemonshowdown.com/gen4ubers-2373374930) para permitir treinos fora dos torneios BattleDex
+- [ ] **Logs de batalha no formato Showdown** enviados no privado após cada partida, incluindo weather/status/movimentos como no replay, para revisões rápidas e consistentes com o fluxo da plataforma
 
 ### **Medium Term (1-2 meses)**
 - [ ] **API REST** para integração externa
@@ -141,6 +143,10 @@ def register_message_handlers(app):
 - [ ] **Web Login** para conectar contas BattleDex a serviços externos usando a conta Telegram
 - [ ] **Sincronização de torneios Showdown** (criar/iniciar Auto-DQ diretamente do bot, inspirado nas ferramentas nativas da plataforma)
 - [ ] **Leaderboard unificada** Showdown ↔️ BattleDex (importa ladder/elo externo e aplica bonificações locais)
+- [ ] **PvP assíncrono entre jogadores** (desafios pairados por elo, registrando replays no formato BattleDex/Showdown para consulta)
+- [ ] **Suporte a múltiplos Pokémon por partida** (times 3v3/6v6 como no replay, com alternância em turnos e persistência de status)
+- [ ] **Sistema de itens e habilidades em batalhas** (berries, choice items, habilidades passivas que afetam dano e status, seguindo o modelo do link)
+- [ ] **Batalhas simultâneas com isolamento de estado** para permitir múltiplas partidas Showdown-like sem bloquear o bot
 
 ### **Long Term (3+ meses)**
 - [ ] **Machine Learning** para balanceamento de times
@@ -153,6 +159,9 @@ def register_message_handlers(app):
 - [ ] **Jogos HTML5 integrados** (mini desafios PVE/PVP que dão moedas)
 - [ ] **Sticker packs e custom emoji temáticos** liberados como recompensas de temporada
 - [ ] **Battle bot avançado estilo Showdown** (IA básica para sparring/treino e eventos "bot battle royale")
+- [ ] **Sistema de efeitos secundários e condições climáticas** (status, buffs/debuffs, weather control) reproduzindo o comportamento observado no replay
+- [ ] **Análises pós-jogo com recomendações de jogadas** usando os replays BattleDex/Showdown para sugerir linhas alternativas em partidas reais
+- [ ] **Hub social in-bot orientado a partidas** para matchmaking rápido, organização de clãs e temporadas baseadas em histórico de confrontos
 
 ---
 
