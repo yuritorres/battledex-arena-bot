@@ -99,6 +99,12 @@ python main.py
 - O comando `/backup` gera um arquivo `battledex-backup-AAAAMMDD-HHMMSS.zip` na pasta `storage/backups/` e envia o arquivo diretamente, via mensagem privada, ao administrador que disparou o comando.
 - O comando `/restore` lista os backups disponíveis ou restaura um arquivo específico (ou `latest`). Após restaurar, recomenda-se reiniciar o bot para garantir que as alterações sejam carregadas.
 
+#### Campeonatos e inscrições
+- Os comandos de campeonato (`/camp_criar`, `/camp_abrir`, etc.) podem ter seus nomes configurados via variáveis `CAMP_CMD_*` no `.env`.
+- Sempre que um administrador cria um campeonato com `/camp_criar`, o bot tenta abrir automaticamente um novo tópico de fórum chamado **"Inscrição <nome do campeonato>"** para concentrar as inscrições dos jogadores.
+- Para direcionar esses tópicos para um grupo específico, defina `CAMP_SIGNUP_CHAT_ID` no `.env` com o ID do supergrupo/fórum desejado. Se o valor estiver vazio, o bot usa o chat em que o comando foi executado, desde que seja um supergrupo com tópicos habilitados.
+- Caso a criação do tópico falhe (por exemplo, permissões insuficientes ou comando executado em chat sem tópicos), o bot informa o administrador no próprio Telegram para que ajuste a configuração/manualmente abra o tópico.
+
 
 ### 5.1 Notificações automáticas do YouTube
 

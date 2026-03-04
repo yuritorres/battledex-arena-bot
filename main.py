@@ -45,6 +45,13 @@ BROADCAST_CHAT_ID = int(BROADCAST_CHAT_ID_ENV) if BROADCAST_CHAT_ID_ENV and BROA
 BROADCAST_TOPIC_ID_ENV = os.getenv("BROADCAST_TOPIC_ID")
 BROADCAST_TOPIC_ID = int(BROADCAST_TOPIC_ID_ENV) if BROADCAST_TOPIC_ID_ENV and BROADCAST_TOPIC_ID_ENV.lstrip('-').isdigit() else None
 
+CAMP_SIGNUP_CHAT_ID_ENV = os.getenv("CAMP_SIGNUP_CHAT_ID")
+CAMP_SIGNUP_CHAT_ID = (
+    int(CAMP_SIGNUP_CHAT_ID_ENV)
+    if CAMP_SIGNUP_CHAT_ID_ENV and CAMP_SIGNUP_CHAT_ID_ENV.lstrip('-').isdigit()
+    else None
+)
+
 # Comandos de campeonato configuráveis via .env
 CAMP_CMD_CRIAR = os.getenv("CAMP_CMD_CRIAR", "/camp_criar")
 CAMP_CMD_ABRIR = os.getenv("CAMP_CMD_ABRIR", "/camp_abrir")
