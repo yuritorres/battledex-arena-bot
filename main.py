@@ -158,7 +158,7 @@ async def comandos_command(update, context):
         "/replaystats &lt;nome&gt; [tier] — Estatísticas agregadas de replays\n"
         "/broadcast &lt;mensagem&gt; — Envia anúncio a todos que já interagiram (admin)\n"
         "/info — Lista todos os usuários registrados\n"
-        "/ia &lt;mensagem&gt; — Responde usando Gemini IA (restrito ao Torres)\n"
+        "/ia &lt;mensagem&gt; — Responde usando Gemini IA (restrito aos admins)\n"
         "/penalizar &lt;Usuário&gt; &lt;quantidade&gt; — Remove battlecoins de um participante (admin)\n"
         "/comandos — Mostra esta mensagem\n"
         "\n<b>Comandos de ranking também podem ser enviados como mensagem iniciando por #ranking</b>"
@@ -236,7 +236,7 @@ async def start_command(update, context):
         "• /saldo — mostra suas battlecoins\n"
         "• /loja — lista itens\n"
         "• /inventario — mostra seu inventário\n"
-        "• /ia &lt;mensagem&gt; — pergunta à IA (restrito)\n"
+        "• /ia &lt;mensagem&gt; — pergunta à IA (restrito a admins)\n"
         "• /ping — teste rápido\n"
         "• /quiztest — envia quiz (admins, se quiz habilitado)\n\n"
         "Dica: mensagens iniciando com #ranking registram resultado (formato Jogador1 X x Y Jogador2)."
@@ -313,8 +313,8 @@ async def transferir_command(update, context):
 
 # Handler para comando de IA
 async def ia_command(update, context):
-    # Limitar o comando apenas ao usuário Torres (ID 7562086063)
-    if update.effective_user.id != 7562086063:
+    # Limitar o comando apenas aos administradores
+    if update.effective_user.id not in ADMINS:
         await update.message.reply_text("⛔ Você não tem permissão para usar este comando.")
         return
     prompt = " ".join(context.args)
