@@ -138,7 +138,6 @@ def register_message_handlers(app):
 - [ ] **Torneios automatizados** (swiss, round-robin)
 - [ ] **Integração com Discord**
 - [ ] **Mini App Telegram** para painel do admin/jogador sem sair do app
-- [ ] **Pagamentos com Telegram Stars** para inscrições premium e cosméticos
 - [ ] **Web Login** para conectar contas BattleDex a serviços externos usando a conta Telegram
 - [ ] **Sincronização de torneios Showdown** (criar/iniciar Auto-DQ diretamente do bot, inspirado nas ferramentas nativas da plataforma)
 - [ ] **Leaderboard unificada** Showdown ↔️ BattleDex (importa ladder/elo externo e aplica bonificações locais)
