@@ -20,14 +20,14 @@ cd battledex-arena-bot
 
 ### 2. Configure o arquivo `.env`
 
-Crie um arquivo `.env` na pasta `battledex-arena-bot` com (exemplo):
+Há um modelo em `.env.example`. Copie para `.env` e preencha:
 ```
 GEMINI_API_KEY=SuaChaveGeminiAqui
 OPENAI_API_KEY=SuaChaveOpenAIAqui
 TELEGRAM_TOKEN=SeuTokenTelegramAqui
 ADMINS=123456789,987654321
 
-# IDs do grupo/tópico
+# IDs do grupo/tópico (mude para o seu chat ID do grupo)
 CHAT_ID_BF_ADM=-123456789
 CHAT_ID_BF_ADM_QUIZ=-123456789
 LOJA_GROUP_ID=-123456789
@@ -37,8 +37,7 @@ LOJA_TOPIC_ID=123
 BATTLE_COINS_REWARD=10
 ```
 
-- `ADMINS` deve conter os IDs dos administradores do bot, separados por vírgula. Exemplo: `ADMINS=123456789,987654321`
-- Para adicionar mais administradores, basta incluir mais IDs separados por vírgula.
+- `ADMINS` aceita um ou vários IDs separados por vírgula. Ex.: `ADMINS=123456789` ou `ADMINS=123456789,987654321`.
 
 Você pode obter a chave Gemini em https://aistudio.google.com/app/apikey
 e o token do Telegram criando um bot em https://t.me/BotFather
