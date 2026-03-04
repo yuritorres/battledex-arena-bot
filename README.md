@@ -5,6 +5,7 @@ Este projeto contém um bot para Telegram voltado para a comunidade de batalhas 
 ## Funcionalidades
 - Ranking de jogadores (adicionar, remover, mostrar ranking, resetar ELO)
 - Comando `/ia <mensagem>`: responde usando a IA Gemini
+- Comandos `/backup` e `/restore` exclusivos para administradores, com envio privado do arquivo compactado
 - Banco de dados SQLite local
 - Configuração via arquivo `.env`
 - Pronto para rodar em Docker
@@ -80,6 +81,13 @@ python main.py
 - `/saldo <nome>` — Mostra saldo de moedas
 - `/coinsranking` — Mostra ranking de moedas
 - `/penalizar <Usuário> <quantidade>` — Remove moedas de um participante (admin)
+- `/backup` — Gera um pacote ZIP com todo o conteúdo da pasta `storage/` e envia no privado do admin
+- `/restore <arquivo|latest>` — Restaura o conteúdo de `storage/` a partir de um backup disponível
+
+#### Backup e Restore
+- Os dados persistentes ficam em `storage/` (bancos SQLite, JSONs, cache da Pokédex, etc.).
+- O comando `/backup` gera um arquivo `battledex-backup-AAAAMMDD-HHMMSS.zip` na pasta `storage/backups/` e envia o arquivo diretamente, via mensagem privada, ao administrador que disparou o comando.
+- O comando `/restore` lista os backups disponíveis ou restaura um arquivo específico (ou `latest`). Após restaurar, recomenda-se reiniciar o bot para garantir que as alterações sejam carregadas.
 
 ### 6. Usando Docker
 
