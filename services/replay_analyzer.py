@@ -79,6 +79,8 @@ def analyze_log(log_text: str):
         "p1": {"placed": [], "removed": []},
         "p2": {"placed": [], "removed": []},
     }
+    teams = {"p1": [], "p2": []}
+    remaining_pokemon = {"p1": [], "p2": []}
 
     for raw_line in log_text.splitlines():
         if not raw_line.startswith("|"):
@@ -98,17 +100,44 @@ def analyze_log(log_text: str):
             if side in kos:
                 # This faint belongs to the side of the fainted mon, so opponent got a KO
                 if side == "p1":
-                    kos["p2"] += 1
+                    kos["p1"] += 1  # p1 perdeu um Pokémon
                 elif side == "p2":
-                    kos["p1"] += 1
+                    kos["p2"] += 1  # p2 perdeu um Pokémon
         elif tag in {"-sidestart", "-sideend"}:
             parsed = _parse_hazards_line(parts)
             if parsed:
                 side, action, hazard = parsed
                 if side in hazards:
                     hazards[side][action].append(hazard)
+        elif tag == "poke" and len(parts) > 5:
+            # |poke|p1|Pikachu|L50, M|F|100/100
+            side = parts[1]
+            pokemon_name = parts[2]
+            if side in teams and pokemon_name not in teams[side]:
+                teams[side].append(pokemon_name)
+        elif tag == "clearpoke" and len(parts) > 1:
+            # |clearpoke|p1
+            side = parts[1]
+            if side in teams:
+                remaining_pokemon[side] = teams[side].copy()
 
-    return {"turns": turns, "kos": kos, "hazards": hazards}
+    # Se não encontrou clearpoke, assume que todos os Pokémon estão vivos
+    if not remaining_pokemon["p1"] and teams["p1"]:
+        remaining_pokemon["p1"] = teams["p1"].copy()
+    if not remaining_pokemon["p2"] and teams["p2"]:
+        remaining_pokemon["p2"] = teams["p2"].copy()
+
+    # Remove Pokémon que desmaiaram dos remanescentes
+    for raw_line in log_text.splitlines():
+        if raw_line.startswith("|faint|") and len(raw_line.split("|")) > 2:
+            faint_parts = raw_line.split("|")
+            pokemon_name = faint_parts[2].split(",")[0].strip()  # Remove nicknames
+            side = faint_parts[1][:2]
+            if side in remaining_pokemon:
+                # Remove Pokémon da lista de remanescentes
+                remaining_pokemon[side] = [p for p in remaining_pokemon[side] if p != pokemon_name]
+
+    return {"turns": turns, "kos": kos, "hazards": hazards, "teams": teams, "remaining_pokemon": remaining_pokemon}
 
 
 def summarize_replay(data: Dict) -> Dict:
@@ -166,6 +195,8 @@ def summarize_replay(data: Dict) -> Dict:
         "turns": parsed.get("turns", 0),
         "kos": parsed.get("kos", {}),
         "hazards": parsed.get("hazards", {}),
+        "teams": parsed.get("teams", {}),
+        "remaining_pokemon": parsed.get("remaining_pokemon", {}),
     }
 
 
@@ -177,6 +208,8 @@ def build_text_summary(summary: Dict) -> str:
     tier = summary["tier"]
     kos = summary["kos"]
     hazards = summary["hazards"]
+    teams = summary.get("teams", {})
+    remaining = summary.get("remaining_pokemon", {})
 
     def _haz_line(side: str) -> str:
         placed = hazards.get(side, {}).get("placed", [])
@@ -185,11 +218,43 @@ def build_text_summary(summary: Dict) -> str:
             return ", ".join(arr) if arr else "—"
         return f"Colocou: {fmt(placed)} | Removeu: {fmt(removed)}"
 
+    def _team_line(side: str, player_name: str) -> str:
+        team = teams.get(side, [])
+        if not team:
+            return f"Time {player_name}: —"
+        return f"Time {player_name}: {', '.join(team)}"
+
+    def _remaining_line(side: str, player_name: str) -> str:
+        remaining_team = remaining.get(side, [])
+        if not remaining_team:
+            return f"Sobreviventes {player_name}: —"
+        return f"Sobreviventes {player_name}: {', '.join(remaining_team)} ({len(remaining_team)}/6)"
+
+    # Calcular Pokémon restantes baseado nos KOs
+    p1_remaining = 6 - kos.get('p1', 0)
+    p2_remaining = 6 - kos.get('p2', 0)
+    
+    # Formatação do placar
+    winner_emoji = "🏆" if winner == p1 else "🏆" if winner == p2 else ""
+    if winner == p1:
+        score_line = f"{p1}: {p1_remaining} x {p2_remaining} {p2}{winner_emoji}"
+    elif winner == p2:
+        score_line = f"{p1}: {p1_remaining} x {p2_remaining} {p2}{winner_emoji}"
+    else:
+        score_line = f"{p1}: {p1_remaining} x {p2_remaining} {p2}"
+
     lines = [
         f"🏆 Vencedor: {winner}",
         f"Tier: {tier}",
         f"Turnos: {turns}",
-        f"KOs — {p1}: {kos.get('p1', 0)} | {p2}: {kos.get('p2', 0)}",
+        f"Placar: {score_line}",
+        f"",
+        _team_line("p1", p1),
+        _team_line("p2", p2),
+        f"",
+        _remaining_line("p1", p1),
+        _remaining_line("p2", p2),
+        f"",
         f"Hazards {p1}: {_haz_line('p1')}",
         f"Hazards {p2}: {_haz_line('p2')}",
     ]
