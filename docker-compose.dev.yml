@@ -1,0 +1,23 @@
+services:
+  app:
+    build: .
+    container_name: battledex-arena-bot-dev
+    env_file:
+      - .env
+    volumes:
+      # Montagem bidirecional para sincronização Windows-Docker
+      - type: bind
+        source: ./storage
+        target: /app/storage
+        consistency: cached  # Melhora performance em Windows
+    restart: unless-stopped
+    command: ["python", "main.py"]
+    environment:
+      - PYTHONUNBUFFERED=1
+      - UID=1000
+      - GID=1000
+    # Configurações adicionais para Windows
+    stdin_open: true
+    tty: true
+    # Garante que o container escreva como usuário local
+    user: "1000:1000"

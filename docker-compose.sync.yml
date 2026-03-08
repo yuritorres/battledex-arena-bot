@@ -1,0 +1,19 @@
+services:
+  app:
+    build: .
+    container_name: battledex-arena-bot-sync
+    env_file:
+      - .env
+    volumes:
+      # Volume principal para sincronização
+      - ./storage:/app/storage
+      # Volume adicional para backup local
+      - ./local_storage:/app/local_storage
+    restart: unless-stopped
+    command: ["python", "main.py"]
+    environment:
+      - PYTHONUNBUFFERED=1
+      # Path para storage local alternativo
+      - LOCAL_STORAGE_PATH=/app/local_storage
+    # Script para sincronização automática
+    entrypoint: ["/bin/sh", "-c", "cp -r /app/storage/* /app/local_storage/ 2>/dev/null || true && python main.py"]

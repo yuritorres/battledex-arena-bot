@@ -1,0 +1,16 @@
+services:
+  app:
+    build: .
+    container_name: battledex-arena-bot
+    env_file:
+      - .env
+    volumes:
+      - ./storage:/app/storage
+      - ./storage:/app/storage  # Volume duplicado para garantir sincronização bidirecional
+    restart: unless-stopped
+    command: ["python", "main.py"]
+    environment:
+      - PYTHONUNBUFFERED=1
+    # Adiciona configurações para melhor sincronização Windows-Docker
+    user: "${UID:-1000}:${GID:-1000}"
+    working_dir: /app
