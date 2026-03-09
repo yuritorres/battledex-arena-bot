@@ -149,6 +149,11 @@ class CoinsService:
             return False
     
     @staticmethod
+    def get_top_balance(limit: int = 10) -> List[Tuple[str, int]]:
+        """Obter top jogadores por saldo (compatibilidade com Discord)"""
+        return CoinsService.get_top_players(limit)
+    
+    @staticmethod
     def get_top_players(limit: int = 10) -> List[Tuple[str, int]]:
         """Obter top jogadores"""
         try:
