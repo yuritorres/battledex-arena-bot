@@ -8,8 +8,11 @@ import logging
 import discord
 from discord import app_commands
 from discord.ext import commands
+from discord_bot.youtube_notifier import DiscordYouTubeNotifier
 
 logger = logging.getLogger(__name__)
+
+from discord.ext import commands
 
 class DiscordBot(commands.Bot):
     """Bot Discord para BattleDex Arena"""
@@ -33,6 +36,9 @@ class DiscordBot(commands.Bot):
     async def setup_hook(self):
         """Configuração inicial do bot"""
         logger.info("Configurando Discord Bot...")
+        
+        # Inicializar YouTube notifier
+        self.youtube_notifier = DiscordYouTubeNotifier(self)
         
         # Carregar comandos
         await self.load_commands()
@@ -81,12 +87,18 @@ class DiscordBot(commands.Bot):
             except ImportError as e:
                 logger.warning(f"Comandos de IA não carregados: {e}")
             
+            # Carregar comandos de ajuda
+            from discord_bot.commands.help_commands import setup as help_setup
+            await help_setup(self)
+            logger.info("Comandos de ajuda carregados!")
+            
+            # Carregar comandos de YouTube
             try:
-                from discord_bot.commands.help_commands import setup as help_setup
-                await help_setup(self)
-                logger.info("Comandos de ajuda carregados!")
+                from discord_bot.commands.youtube_commands import setup as youtube_setup
+                await youtube_setup(self)
+                logger.info("Comandos de YouTube carregados!")
             except ImportError as e:
-                logger.warning(f"Comandos de ajuda não carregados: {e}")
+                logger.warning(f"Comandos de YouTube não carregados: {e}")
             
             # Listar comandos carregados
             commands = await self.tree.fetch_commands()
@@ -102,7 +114,10 @@ class DiscordBot(commands.Bot):
     async def on_ready(self):
         """Evento quando bot está pronto"""
         logger.info(f'Discord Bot conectado como {self.user}')
-        logger.info(f'Bot está em {len(self.guilds)} servidores')
+        logger.info(f"Bot está em {len(self.guilds)} servidores")
+        
+        # Iniciar monitoramento YouTube
+        await self.youtube_notifier.start_monitoring()
         
         # Sincronizar comandos com Discord
         try:
