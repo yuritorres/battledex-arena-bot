@@ -1,12 +1,13 @@
 """
-BattleDex Arena Bot - Discord Implementation
+BattleDex Arena - Discord Implementation
 Bot principal para Discord com funcionalidades compatíveis com o Telegram
 """
 
 import os
 import logging
-from discord.ext import commands
 import discord
+from discord import app_commands
+from discord.ext import commands
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +46,7 @@ class DiscordBot(commands.Bot):
         """Carregar todos os módulos de comandos"""
         try:
             # Carregar comandos de ranking
-            from discord.commands.ranking_commands import setup
+            from discord_bot.commands.ranking_commands import setup
             await setup(self)
             logger.info("Comandos de ranking carregados!")
             

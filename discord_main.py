@@ -7,7 +7,7 @@ import asyncio
 import os
 import logging
 from dotenv import load_dotenv
-from discord.discord_bot import create_discord_bot
+from discord_bot.discord_bot import create_discord_bot
 
 # Configurar logging
 logging.basicConfig(

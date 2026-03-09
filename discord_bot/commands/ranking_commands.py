@@ -4,7 +4,6 @@ Comandos de ranking para Discord usando serviços compartilhados
 """
 
 import discord
-from discord.ext import commands
 from discord import app_commands
 import logging
 
@@ -12,10 +11,10 @@ from shared.ranking_service import RankingService
 
 logger = logging.getLogger(__name__)
 
-class RankingCommands(commands.Cog):
+class RankingCommands(discord.Cog):
     """Commands para ranking do Discord"""
     
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: discord.Client):
         self.bot = bot
     
     @app_commands.command(name="addplayer", description="Adicionar jogador ao ranking")
@@ -211,6 +210,6 @@ class ConfirmResetView(discord.ui.View):
         self.value = False
         self.stop()
 
-async def setup(bot: commands.Bot):
+async def setup(bot: discord.Client):
     """Setup dos comandos de ranking"""
     await bot.add_cog(RankingCommands(bot))
