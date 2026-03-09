@@ -37,9 +37,6 @@ class DiscordBot(commands.Bot):
         # Carregar comandos
         await self.load_commands()
         
-        # Sincronizar comandos com Discord
-        await self.tree.sync()
-        
         logger.info("Discord Bot configurado com sucesso!")
     
     async def load_commands(self):
@@ -50,19 +47,43 @@ class DiscordBot(commands.Bot):
             await setup(self)
             logger.info("Comandos de ranking carregados!")
             
+            # Listar comandos carregados
+            commands = await self.tree.fetch_commands()
+            logger.info(f"Total de comandos carregados: {len(commands)}")
+            for cmd in commands:
+                logger.info(f"Comando: {cmd.name}")
+            
         except Exception as e:
             logger.error(f"Erro ao carregar comandos: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
     
     async def on_ready(self):
         """Evento quando bot está pronto"""
         logger.info(f'Discord Bot conectado como {self.user}')
         logger.info(f'Bot está em {len(self.guilds)} servidores')
         
+        # Sincronizar comandos com Discord
+        try:
+            await self.tree.sync()
+            logger.info("Comandos sincronizados com sucesso!")
+            
+            # Verificar comandos após sincronização
+            commands = await self.tree.fetch_commands()
+            logger.info(f"Comandos disponíveis após sync: {len(commands)}")
+            for cmd in commands:
+                logger.info(f"  - /{cmd.name}: {cmd.description}")
+                
+        except Exception as e:
+            logger.error(f"Erro ao sincronizar comandos: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+        
         # Definir status do bot
         await self.change_presence(
             activity=discord.Activity(
                 type=discord.ActivityType.watching,
-                name="batalhas Pokémon | /showranking"
+                name="BattleDex Arena"
             )
         )
     
