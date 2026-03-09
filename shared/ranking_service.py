@@ -1,11 +1,13 @@
 """
 BattleDex Arena - Ranking Service
-Serviço compartilhado para gerenciamento de ranking ELO
+Serviço compartilhado para ranking ELO
+Usado por Telegram e Discord
 """
 
-import os
 import sqlite3
-from typing import List, Tuple, Optional
+import os
+from typing import List, Dict, Optional, Tuple
+from datetime import datetime
 
 STORAGE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "storage"))
 DB_PATH = os.path.join(STORAGE_DIR, "rankingbf.db")

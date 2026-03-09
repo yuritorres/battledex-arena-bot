@@ -47,10 +47,46 @@ class DiscordBot(commands.Bot):
             await setup(self)
             logger.info("Comandos de ranking carregados!")
             
-            # Carregar comandos de teste
-            from discord_bot.commands.test_commands import setup as test_setup
-            await test_setup(self)
-            logger.info("Comandos de teste carregados!")
+            # Carregar comandos básicos (funcionam imediatamente)
+            from discord_bot.commands.basic_commands import setup as basic_setup
+            await basic_setup(self)
+            logger.info("Comandos básicos carregados!")
+            
+            # Tentar carregar comandos avançados (se serviços existirem)
+            try:
+                from discord_bot.commands.coins_commands import setup as coins_setup
+                await coins_setup(self)
+                logger.info("Comandos de moedas carregados!")
+            except ImportError as e:
+                logger.warning(f"Comandos de moedas não carregados: {e}")
+            
+            try:
+                from discord_bot.commands.shop_commands import setup as shop_setup
+                await shop_setup(self)
+                logger.info("Comandos de loja carregados!")
+            except ImportError as e:
+                logger.warning(f"Comandos de loja não carregados: {e}")
+            
+            try:
+                from discord_bot.commands.quiz_commands import setup as quiz_setup
+                await quiz_setup(self)
+                logger.info("Comandos de quiz carregados!")
+            except ImportError as e:
+                logger.warning(f"Comandos de quiz não carregados: {e}")
+            
+            try:
+                from discord_bot.commands.ai_commands import setup as ai_setup
+                await ai_setup(self)
+                logger.info("Comandos de IA carregados!")
+            except ImportError as e:
+                logger.warning(f"Comandos de IA não carregados: {e}")
+            
+            try:
+                from discord_bot.commands.help_commands import setup as help_setup
+                await help_setup(self)
+                logger.info("Comandos de ajuda carregados!")
+            except ImportError as e:
+                logger.warning(f"Comandos de ajuda não carregados: {e}")
             
             # Listar comandos carregados
             commands = await self.tree.fetch_commands()
