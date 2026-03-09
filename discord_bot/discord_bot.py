@@ -47,6 +47,11 @@ class DiscordBot(commands.Bot):
             await setup(self)
             logger.info("Comandos de ranking carregados!")
             
+            # Carregar comandos de teste
+            from discord_bot.commands.test_commands import setup as test_setup
+            await test_setup(self)
+            logger.info("Comandos de teste carregados!")
+            
             # Listar comandos carregados
             commands = await self.tree.fetch_commands()
             logger.info(f"Total de comandos carregados: {len(commands)}")
@@ -65,8 +70,14 @@ class DiscordBot(commands.Bot):
         
         # Sincronizar comandos com Discord
         try:
+            # Sincronizar globalmente primeiro
             await self.tree.sync()
-            logger.info("Comandos sincronizados com sucesso!")
+            logger.info("Comandos sincronizados globalmente!")
+            
+            # Depois sincronizar por guild (mais rápido)
+            for guild in self.guilds:
+                await self.tree.sync(guild=guild)
+                logger.info(f"Comandos sincronizados para guild: {guild.name}")
             
             # Verificar comandos após sincronização
             commands = await self.tree.fetch_commands()

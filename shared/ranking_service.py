@@ -66,6 +66,32 @@ class RankingService:
             return False
     
     @staticmethod
+    def get_ranking_data() -> List[Dict]:
+        """Obter ranking como dados estruturados para Discord"""
+        try:
+            conn = RankingService.create_connection()
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT nome, elo, vitorias, derrotas FROM ranking ORDER BY elo DESC")
+            rows = cursor.fetchall()
+            conn.close()
+
+            ranking_data = []
+            for row in rows:
+                nome, elo, vitorias, derrotas = row
+                ranking_data.append({
+                    'name': nome,
+                    'elo': elo,
+                    'vitorias': vitorias,
+                    'derrotas': derrotas
+                })
+            
+            return ranking_data
+        except Exception as e:
+            print(f"Erro ao obter ranking data: {e}")
+            return []
+    
+    @staticmethod
     def get_ranking() -> str:
         """Obter ranking formatado"""
         try:

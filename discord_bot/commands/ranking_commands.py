@@ -88,21 +88,67 @@ class RankingCommands(commands.Cog):
     
     @app_commands.command(name="showranking", description="Mostrar ranking atual")
     async def showranking(self, interaction: discord.Interaction):
-        """Mostrar ranking atual"""
+        """Mostrar ranking ELO atual"""
         
-        ranking_text = RankingService.get_ranking()
+        logger.info(f"Comando /showranking usado por {interaction.user.name}")
         
-        embed = discord.Embed(
-            title="📊 Ranking BF 🔰",
-            description=ranking_text,
-            color=discord.Color.blue()
-        )
-        embed.set_thumbnail(
-            url="https://cdn-icons-png.flaticon.com/512/3408/3408593.png"
-        )
-        embed.set_footer(text="BattleDex Arena - Ranking ELO")
-        
-        await interaction.response.send_message(embed=embed)
+        try:
+            # Obter ranking do serviço
+            ranking_data = RankingService.get_ranking_data()
+            
+            logger.info(f"Dados do ranking: {ranking_data}")
+            
+            if not ranking_data:
+                embed = discord.Embed(
+                    title="🏆 Ranking BattleDex",
+                    description="Nenhum jogador encontrado no ranking!",
+                    color=discord.Color.orange()
+                )
+                await interaction.response.send_message(embed=embed)
+                return
+            
+            # Criar embed com ranking
+            embed = discord.Embed(
+                title="🏆 Ranking BattleDex Arena",
+                description="Ranking ELO atual dos jogadores",
+                color=discord.Color.blue()
+            )
+            
+            # Adicionar jogadores ao embed
+            for i, player in enumerate(ranking_data[:10], 1):  # Top 10
+                name = player.get('name', 'Desconhecido')
+                elo = player.get('elo', 0)
+                
+                # Emoji por posição
+                if i == 1:
+                    medal = "🥇"
+                elif i == 2:
+                    medal = "🥈"
+                elif i == 3:
+                    medal = "🥉"
+                else:
+                    medal = f"#{i}"
+                
+                embed.add_field(
+                    name=f"{medal} {name}",
+                    value=f"ELO: {elo}",
+                    inline=False
+                )
+            
+            embed.set_footer(text=f"Total de jogadores: {len(ranking_data)}")
+            
+            await interaction.response.send_message(embed=embed)
+            logger.info("Ranking exibido com sucesso!")
+            
+        except Exception as e:
+            logger.error(f"Erro ao mostrar ranking: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+            
+            await interaction.response.send_message(
+                "❌ Ocorreu um erro ao buscar o ranking!",
+                ephemeral=True
+            )
     
     @app_commands.command(name="resetelo", description="Resetar ELO de um jogador")
     @app_commands.describe(nome="Nome do jogador")
