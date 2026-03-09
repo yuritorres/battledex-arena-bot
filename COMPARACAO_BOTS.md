@@ -6,7 +6,7 @@ Os bots do Discord e Telegram têm **comandos diferentes** mas **compartilham a 
 
 ---
 
-## 🤖 Bot Discord (27 comandos)
+## 🤖 Bot Discord (31 comandos)
 
 ### **Comandos Exclusivos do Discord:**
 - `/ping` - Testar resposta
@@ -31,6 +31,10 @@ Os bots do Discord e Telegram têm **comandos diferentes** mas **compartilham a 
 - `/ajudamoedas` - Ajuda moedas
 - `/ajudaquiz` - Ajuda quiz
 - `/ajudaia` - Ajuda IA
+- `/youtube` - Ver informações do canal YouTube ✨ **NOVO!**
+- `/ultimovideo` - Ver o último vídeo do canal YouTube ✨ **NOVO!**
+- `/testarnotificacao` - Testar notificação YouTube (admin) ✨ **NOVO!**
+- `/canalyoutube` - Configurar canal YouTube (admin) ✨ **NOVO!**
 
 ### **Comandos de Ranking (compartilhados):**
 - `/addplayer` - Adicionar jogador (admin)
@@ -54,7 +58,7 @@ Os bots do Discord e Telegram têm **comandos diferentes** mas **compartilham a 
 ### **Comandos Adicionais (dependendo dos handlers):**
 - `/backup` - Fazer backup (admin)
 - `/restore` - Restaurar backup (admin)
-- `/notificar` - Notificar YouTube
+- `/notificar` - Notificar YouTube ✅ **Funcional**
 - `/ia <pergunta>` - Perguntar à IA
 
 ---
@@ -90,14 +94,14 @@ storage/
 | Característica | Discord Bot | Telegram Bot |
 |---------------|-------------|---------------|
 | **Interface** | Slash Commands | Text Commands |
-| **Total Comandos** | 27 comandos | ~6 comandos |
+| **Total Comandos** | 31 comandos | ~6 comandos |
 | **Sistema Moedas** | ✅ Completo | ❌ Limitado |
 | **Loja Virtual** | ✅ Funcional | ❌ Não implementado |
 | **Quiz Interativo** | ✅ Avançado | ✅ Básico |
 | **IA Assistente** | ✅ Completo | ✅ Básico |
 | **Ranking ELO** | ✅ Compartilhado | ✅ Compartilhado |
 | **Backup/Restore** | ❌ Não implementado | ✅ Funcional |
-| **Notificações** | ❌ Não implementado | ✅ YouTube |
+| **Notificações** | ✅ YouTube (NOVO!) | ✅ YouTube |
 
 ---
 
@@ -107,6 +111,7 @@ storage/
 ```
 discord_bot/
 ├── discord_bot.py          # Bot principal
+├── youtube_notifier.py     # YouTube notifier ✨ **NOVO!**
 └── commands/
     ├── ranking_commands.py # Comandos ranking
     ├── basic_commands.py   # Comandos básicos
@@ -114,6 +119,7 @@ discord_bot/
     ├── shop_commands.py    # Comandos loja
     ├── quiz_commands.py    # Comandos quiz
     ├── ai_commands.py      # Comandos IA
+    ├── youtube_commands.py # Comandos YouTube ✨ **NOVO!**
     └── help_commands.py    # Comandos ajuda
 ```
 
@@ -138,6 +144,7 @@ repositories/
 - Quiz básico
 - IA assistente
 - Mesmo banco de dados
+- Notificações YouTube ✅ **AGORA AMBOS!**
 
 ### **🔄 Apenas Discord tem:**
 - Sistema completo de moedas
@@ -145,10 +152,10 @@ repositories/
 - Quiz avançado com estatísticas
 - Comandos utilitários (dado, sorteio, etc.)
 - Interface rica com embeds
+- YouTube com 4 comandos dedicados ✨ **NOVO!**
 
 ### **🔄 Apenas Telegram tem:**
 - Sistema de backup/restore
-- Notificações do YouTube
 - Integração com grupos existentes
 
 ---
@@ -157,16 +164,18 @@ repositories/
 
 ### **Para igualar os bots:**
 1. **Telegram:** Adicionar sistema de moedas e loja
-2. **Discord:** Adicionar backup/restore e notificações
+2. **Discord:** Adicionar backup/restore ✅ **YouTube já implementado!**
 
 ### **Vantagens atuais:**
-- **Discord:** Interface mais rica, mais comandos, melhor UX
+- **Discord:** Interface mais rica, 31 comandos, YouTube completo, melhor UX
 - **Telegram:** Mais simples, integração com comunidades existentes
 
 ---
 
 ## 💡 Conclusão
 
-Os bots **NÃO têm os mesmos comandos**, mas **compartilham a mesma lógica central**. O Discord bot é muito mais completo e moderno, enquanto o Telegram bot é mais focado nas funcionalidades essenciais.
+Os bots **NÃO têm os mesmos comandos**, mas **compartilham a mesma lógica central**. O Discord bot é muito mais completo e moderno com **31 comandos**, enquanto o Telegram bot é mais focado nas funcionalidades essenciais.
+
+**🎉 Nova funcionalidade:** Ambos agora têm **notificações YouTube funcionais**! O Discord com 4 comandos dedicados e o Telegram com notificação tradicional.
 
 **Recomendação:** Use o Discord bot para funcionalidades completas e o Telegram bot para simplicidade e integração com grupos existentes.
