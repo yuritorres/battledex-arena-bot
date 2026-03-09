@@ -1,5 +1,5 @@
 services:
-  app:
+  telegram-bot:
     build: .
     container_name: battledex-arena-bot
     env_file:
@@ -10,3 +10,23 @@ services:
     command: ["python", "main.py"]
     environment:
       - PYTHONUNBUFFERED=1
+    networks:
+      - battledex-network
+
+  discord-bot:
+    build: .
+    container_name: battledex-arena-discord
+    env_file:
+      - .env
+    volumes:
+      - ./storage:/app/storage
+    restart: unless-stopped
+    command: ["python", "discord_main.py"]
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - battledex-network
+
+networks:
+  battledex-network:
+    driver: bridge

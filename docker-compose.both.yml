@@ -1,0 +1,12 @@
+services:
+  battledex-arena-both:
+    build: .
+    container_name: battledex-arena-both
+    env_file:
+      - .env
+    volumes:
+      - ./storage:/app/storage
+    restart: unless-stopped
+    command: ["python", "run_both_bots.py"]
+    environment:
+      - PYTHONUNBUFFERED=1

@@ -40,3 +40,7 @@ external/*
 
 # Banco da aplicação
 banco/banco.md
+
+# Planos de implementação
+implementation_plans/*
+tasks/*

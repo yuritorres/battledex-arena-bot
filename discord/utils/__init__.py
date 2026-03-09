@@ -1,0 +1,3 @@
+"""
+Utilitários do Discord Bot
+"""
